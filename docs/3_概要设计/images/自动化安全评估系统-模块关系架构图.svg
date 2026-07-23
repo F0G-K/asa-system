@@ -27,10 +27,10 @@
       .small { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; fill: #65738a; }
       .edge-label { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; font-weight: 600; fill: #526174; }
       .layer { fill: #f8fafc; stroke: #d8e0eb; stroke-width: 2; }
-      .layer-blue { fill: #f3f7ff; stroke: #b8ccf5; stroke-width: 2; }
-      .layer-purple { fill: #f8f5ff; stroke: #d0c1f8; stroke-width: 2; }
-      .layer-green { fill: #f2fbf7; stroke: #b8e3d0; stroke-width: 2; }
-      .layer-orange { fill: #fff8ed; stroke: #f3d39d; stroke-width: 2; }
+    .layer-blue { fill: #f3f7ff; stroke: #8fb0ee; stroke-width: 2; stroke-dasharray: 8 5; }
+    .layer-purple { fill: #f8f5ff; stroke: #b9a4ef; stroke-width: 2; stroke-dasharray: 8 5; }
+    .layer-green { fill: #f2fbf7; stroke: #8ed4b5; stroke-width: 2; stroke-dasharray: 8 5; }
+    .layer-orange { fill: #fff8ed; stroke: #e8b968; stroke-width: 2; stroke-dasharray: 8 5; }
       .node { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
       .node-blue { fill: #ffffff; stroke: #91b2ef; stroke-width: 1.5; }
       .node-purple { fill: #ffffff; stroke: #b9a4ef; stroke-width: 1.5; }
@@ -39,8 +39,11 @@
       .tag-blue { fill: #e6efff; stroke: #b8ccf5; }
       .tag-purple { fill: #eee9ff; stroke: #d0c1f8; }
       .tag-green { fill: #e3f7ed; stroke: #b8e3d0; }
-      .tag-orange { fill: #fff0d7; stroke: #f3d39d; }
-      .tag-gray { fill: #eef2f7; stroke: #d8e0eb; }
+    .tag-orange { fill: #fff0d7; stroke: #f3d39d; }
+    .tag-gray { fill: #eef2f7; stroke: #d8e0eb; }
+    .layer-badge { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 12px; font-weight: 700; fill: #526174; }
+    .edge-bg { fill: #ffffff; opacity: .96; }
+    .legend-box { fill: #f8fafc; stroke: #d8e0eb; stroke-width: 2; }
     </style>
   </defs>
 
@@ -52,6 +55,8 @@
   <rect x="50" y="135" width="2500" height="190" rx="18" class="layer-blue"/>
   <text x="78" y="171" class="section">用户与交互层</text>
   <text x="78" y="198" class="section-note">通过统一入口访问项目生命周期、监控、漏洞、攻击路径、报告和系统配置</text>
+  <rect x="2425" y="153" width="88" height="28" rx="14" class="tag-blue"/>
+  <text x="2469" y="172" text-anchor="middle" class="layer-badge">L1 · 访问</text>
 
   <rect x="90" y="220" width="270" height="70" rx="12" class="node-blue"/>
   <text x="225" y="248" text-anchor="middle" class="node-title">用户</text>
@@ -89,6 +94,8 @@
   <rect x="50" y="360" width="760" height="590" rx="18" class="layer-blue"/>
   <text x="78" y="398" class="section">控制面 · API 业务模块</text>
   <text x="78" y="424" class="section-note">校验、授权、事务、查询与异步任务受理；不直接接触 Docker Engine</text>
+  <rect x="685" y="378" width="88" height="28" rx="14" class="tag-blue"/>
+  <text x="729" y="397" text-anchor="middle" class="layer-badge">L2 · API</text>
 
   <rect x="85" y="452" width="690" height="137" rx="12" class="node-blue"/>
   <rect x="105" y="470" width="150" height="32" rx="16" class="tag-blue"/>
@@ -117,6 +124,8 @@
   <rect x="850" y="360" width="820" height="590" rx="18" class="layer-purple"/>
   <text x="878" y="398" class="section">控制面 · 异步编排与实时协同</text>
   <text x="878" y="424" class="section-note">长耗时操作通过队列异步执行；阶段结果落库后再发布实时事件</text>
+  <rect x="1545" y="378" width="98" height="28" rx="14" class="tag-purple"/>
+  <text x="1594" y="397" text-anchor="middle" class="layer-badge">L3 · 编排</text>
 
   <rect x="885" y="452" width="750" height="115" rx="12" class="node-purple"/>
   <rect x="905" y="470" width="150" height="32" rx="16" class="tag-purple"/>
@@ -148,6 +157,8 @@
   <rect x="1710" y="360" width="840" height="590" rx="18" class="layer-green"/>
   <text x="1738" y="398" class="section">执行面 · 项目级安全隔离</text>
   <text x="1738" y="424" class="section-note">只有隔离执行网关可以访问 Docker Engine；源码只读，工作目录可写</text>
+  <rect x="2425" y="378" width="98" height="28" rx="14" class="tag-green"/>
+  <text x="2474" y="397" text-anchor="middle" class="layer-badge">L4 · 执行</text>
 
   <rect x="1745" y="452" width="770" height="112" rx="12" class="node-green"/>
   <text x="2130" y="486" text-anchor="middle" class="node-title">executor · 隔离执行网关</text>
@@ -175,6 +186,8 @@
   <rect x="50" y="995" width="2500" height="430" rx="18" class="layer-orange"/>
   <text x="78" y="1033" class="section">数据与基础设施层</text>
   <text x="78" y="1059" class="section-note">业务状态、实时支撑、文件制品和系统观测分别承担清晰职责</text>
+  <rect x="2425" y="1013" width="98" height="28" rx="14" class="tag-orange"/>
+  <text x="2474" y="1032" text-anchor="middle" class="layer-badge">L5 · 数据</text>
 
   <rect x="90" y="1092" width="570" height="260" rx="12" class="node-orange"/>
   <rect x="115" y="1115" width="190" height="32" rx="16" class="tag-orange"/>
@@ -216,41 +229,49 @@
 
   <!-- Main relationships -->
   <path d="M1670 545 H1710" fill="none" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
-  <text x="1680" y="529" class="edge-label">内部任务调用</text>
+  <rect x="1640" y="506" width="98" height="22" rx="6" class="edge-bg"/>
+  <text x="1648" y="522" class="edge-label">内部任务调用</text>
 
   <path d="M810 530 H850" fill="none" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
-  <text x="813" y="514" class="edge-label">异步受理</text>
+  <rect x="794" y="492" width="68" height="22" rx="6" class="edge-bg"/>
+  <text x="800" y="508" class="edge-label">异步受理</text>
 
   <path d="M810 690 H850" fill="none" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
-  <text x="813" y="674" class="edge-label">调度任务</text>
+  <rect x="794" y="652" width="68" height="22" rx="6" class="edge-bg"/>
+  <text x="800" y="668" class="edge-label">调度任务</text>
 
   <path d="M1260 731 V750" fill="none" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
   <path d="M1245 825 H1270" fill="none" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
-  <text x="1250" y="809" class="edge-label">事件投递</text>
 
   <path d="M2100 668 H2140" fill="none" stroke="#1a9a68" stroke-width="3" marker-end="url(#arrow-green)"/>
-  <text x="2104" y="652" class="edge-label">运行时</text>
+  <rect x="2088" y="630" width="50" height="22" rx="6" class="edge-bg"/>
+  <text x="2094" y="646" class="edge-label">运行时</text>
 
   <!-- Data connections from control/worker to lower layer -->
   <path d="M420 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <text x="435" y="1018" class="edge-label">事务读写</text>
+  <rect x="432" y="978" width="70" height="22" rx="6" class="edge-bg"/>
+  <text x="438" y="994" class="edge-label">事务读写</text>
   <path d="M1200 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <text x="1216" y="1018" class="edge-label">状态 / 结果落库</text>
+  <rect x="1212" y="978" width="110" height="22" rx="6" class="edge-bg"/>
+  <text x="1218" y="994" class="edge-label">状态 / 结果落库</text>
   <path d="M1450 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <text x="1466" y="1018" class="edge-label">事件流</text>
+  <rect x="1462" y="978" width="52" height="22" rx="6" class="edge-bg"/>
+  <text x="1468" y="994" class="edge-label">事件流</text>
   <path d="M1960 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <text x="1976" y="1018" class="edge-label">指标采集</text>
+  <rect x="1972" y="978" width="70" height="22" rx="6" class="edge-bg"/>
+  <text x="1978" y="994" class="edge-label">指标采集</text>
 
   <!-- Cross-layer relationships -->
   <path d="M2025 290 V360" fill="none" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
-  <text x="2044" y="332" class="edge-label">受理 / 推送</text>
+  <rect x="2040" y="316" width="78" height="22" rx="6" class="edge-bg"/>
+  <text x="2046" y="332" class="edge-label">受理 / 推送</text>
   <path d="M1635 650 H1710" fill="none" stroke="#1a9a68" stroke-width="3" marker-end="url(#arrow-green)"/>
-  <text x="1645" y="634" class="edge-label">受控执行</text>
+  <rect x="1620" y="612" width="72" height="22" rx="6" class="edge-bg"/>
+  <text x="1626" y="628" class="edge-label">受控执行</text>
   <path d="M1100 731 V750" fill="none" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
-  <text x="1114" y="744" class="edge-label">角色任务</text>
 
   <!-- Legend and boundary notes -->
-  <rect x="50" y="1460" width="2500" height="80" rx="14" class="layer"/>
+  <rect x="50" y="1460" width="2500" height="80" rx="14" class="legend-box"/>
   <text x="80" y="1493" class="node-title">关系图例</text>
   <line x1="250" y1="1488" x2="325" y2="1488" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
   <text x="340" y="1493" class="small">同步调用 / API 受理</text>
