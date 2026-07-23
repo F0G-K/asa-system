@@ -306,6 +306,8 @@ Set-Cookie: asa_csrf=<csrf-token>; Path=/; Secure; SameSite=Lax
 | 验证状态 | `pending`、`verified`、`rejected` |
 | 日志级别 | `debug`、`info`、`warning`、`error` |
 | 报告状态 | `pending`、`generating`、`ready`、`failed` |
+| 用户状态 | `active`、`disabled` |
+| 容器状态 | `pending`、`starting`、`running`、`stopping`、`stopped`、`destroyed`、`failed` |
 
 ## 4. 系统与认证接口
 
@@ -1401,6 +1403,7 @@ URL：`/api/v1/projects/{project_id}/workers`
 | `worker_role` | string | 否 | 无 | 按执行角色筛选 |
 | `task_status` | string | 否 | 无 | 按任务状态筛选 |
 | `sort` | string | 否 | `created_at:asc` | `created_at:asc` 或 `created_at:desc` |
+| `request_id` | string(uuid) | 否 | 无 | 按请求链路筛选 |
 
 请求体：无。
 
@@ -1420,6 +1423,7 @@ URL：`/api/v1/projects/{project_id}/workers`
         "task_status": "running",
         "result_summary": null,
         "error_message": null,
+        "request_id": "16a2efad-6f67-4c13-9141-d43419969e39",
         "attempt_count": 1,
         "started_at": "2026-07-24T09:02:20Z",
         "finished_at": null,
