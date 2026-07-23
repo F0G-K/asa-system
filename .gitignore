@@ -1,0 +1,42 @@
+# IDE - JetBrains
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+.venv/
+venv/
+env/
+.env
+*.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Coverage & test
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Docker
+.dockerignore
+
+# Claude
+.claude/plans/
+.claude/worktrees/
