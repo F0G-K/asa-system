@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评估报告 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <div class="app-layout__main-wrap">
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <a href="project-detail.html">项目详情</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">评估报告</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">评估报告</h1>
+            <p class="page-header__subtitle">商城支付服务安全评估</p>
+          </div>
+          <div class="page-header__actions">
+            <button class="btn btn--primary">下载 Markdown</button>
+            <button class="btn">下载 HTML</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--spacing-lg)"><div class="card__body">
+          <h3 class="section-subtitle">评估概要</h3>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-lg);text-align:center">
+            <div><div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-danger)">4</div><div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">发现漏洞</div></div>
+            <div><div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-success)">2</div><div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">已验证</div></div>
+            <div><div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-primary)">1</div><div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">攻击路径</div></div>
+            <div><div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-warning)">2</div><div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">待验证</div></div>
+          </div>
+        </div></div>
+
+        <div class="card"><div class="card__body">
+          <h3 class="section-subtitle">报告预览</h3>
+          <div style="background:var(--color-fill-input);border-radius:var(--radius-md);padding:var(--spacing-lg);font-size:var(--font-size-sm);color:var(--color-text-regular);line-height:1.8">
+            <pre style="font-family:'Geist Mono',monospace;font-size:var(--font-size-sm);white-space:pre-wrap;color:var(--color-text-secondary)">
+# 安全评估报告
+
+**项目名称**：商城支付服务安全评估
+**评估时间**：2026-07-24 09:00 — 09:11
+**环境**：python-3.12
+
+## 漏洞统计
+| 风险等级 | 数量 |
+|---------|------|
+| 严重    | 1    |
+| 高危    | 2    |
+| 中危    | 1    |
+| 低危    | 0    |
+| 信息    | 0    |
+
+## 发现漏洞
+1. **ASA-2026-0007** — 支付回调未校验签名（严重，已验证）
+2. **ASA-2026-0004** — 订单详情接口存在水平越权（高危，已验证）
+3. **ASA-2026-0002** — SQL注入漏洞-订单查询（高危，待验证）
+4. **ASA-2026-0009** — 敏感信息泄露-调试端点（中危，待验证）
+
+## 攻击路径
+- **PATH-2026-001** — 越权读取订单并伪造支付回调
+            </pre>
+          </div>
+        </div></div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

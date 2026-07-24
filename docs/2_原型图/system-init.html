@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统初始化 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="auth-layout">
+  <div class="auth-card">
+    <h1 class="auth-card__title">系统初始化</h1>
+    <p class="auth-card__subtitle">首次使用前请创建管理员账户</p>
+    <div class="form-group" style="margin-top:var(--spacing-2xl)">
+      <label class="form-label form-label--required" for="admin-user">管理员用户名</label>
+      <input id="admin-user" class="form-input" type="text" placeholder="请输入管理员用户名" maxlength="64" autocomplete="username" style="width:100%">
+    </div>
+    <div class="form-group">
+      <label class="form-label form-label--required" for="admin-pass">密码</label>
+      <input id="admin-pass" class="form-input" type="password" placeholder="请输入密码" autocomplete="new-password" style="width:100%">
+    </div>
+    <button class="btn btn--primary btn--lg" style="width:100%;margin-top:var(--spacing-lg)" onclick="location.href='login.html'">初始化系统</button>
+  </div>
+</div>
+</body>
+</html>

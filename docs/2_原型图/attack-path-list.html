@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>攻击路径 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <div class="app-layout__main-wrap">
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <a href="project-detail.html">项目详情</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">攻击路径</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">攻击路径</h1>
+          </div>
+          <span style="color:var(--color-text-placeholder)">共 1 条路径</span>
+        </div>
+
+        <div class="card"><div class="card__body">
+          <!-- 路径头部 -->
+          <div style="display:flex;align-items:center;gap:var(--spacing-md);margin-bottom:var(--spacing-md)">
+            <code style="font-size:var(--font-size-sm);color:var(--color-primary)">PATH-2026-001</code>
+            <a href="attack-path-detail.html" style="font-size:var(--font-size-xl);font-weight:600;color:var(--color-text-primary);text-decoration:none">越权读取订单并伪造支付回调</a>
+          </div>
+          <p style="color:var(--color-text-secondary);margin-bottom:var(--spacing-md)">
+            攻击者先读取他人订单信息，再利用未校验签名的回调接口修改订单状态。
+          </p>
+          <div style="background:rgba(255,77,79,.08);border-radius:var(--radius-md);padding:var(--spacing-md);margin-bottom:var(--spacing-lg)">
+            <span style="color:var(--color-danger)">⚠ 最终影响：订单状态和资金结算数据可能被篡改。</span>
+          </div>
+
+          <!-- 攻击步骤 -->
+          <h3 class="section-subtitle">攻击步骤</h3>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div style="display:flex;gap:var(--spacing-lg);padding:var(--spacing-lg);background:var(--color-fill-hover);border-radius:var(--radius-md)">
+              <div style="width:40px;height:40px;background:var(--color-primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex-shrink:0">1</div>
+              <div>
+                <p style="color:var(--color-text-primary);margin-bottom:var(--spacing-sm)">利用水平越权读取目标订单编号、金额和当前状态。</p>
+                <div style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:var(--font-size-sm)">
+                  <span style="color:var(--color-text-placeholder)">关联漏洞:</span>
+                  <code style="color:var(--color-primary)">ASA-2026-0004</code>
+                  <span class="tag tag--warning">● 高危</span>
+                  <a href="vulnerability-detail.html" style="color:var(--color-text-secondary)">订单详情接口存在水平越权</a>
+                </div>
+              </div>
+            </div>
+            <div style="width:2px;height:24px;background:var(--color-border);margin-left:39px"></div>
+            <div style="display:flex;gap:var(--spacing-lg);padding:var(--spacing-lg);background:var(--color-fill-hover);border-radius:var(--radius-md)">
+              <div style="width:40px;height:40px;background:var(--color-primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex-shrink:0">2</div>
+              <div>
+                <p style="color:var(--color-text-primary);margin-bottom:var(--spacing-sm)">构造缺少有效签名的支付回调，将目标订单标记为已支付。</p>
+                <div style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:var(--font-size-sm)">
+                  <span style="color:var(--color-text-placeholder)">关联漏洞:</span>
+                  <code style="color:var(--color-primary)">ASA-2026-0007</code>
+                  <span class="tag tag--danger">● 严重</span>
+                  <a href="vulnerability-detail.html" style="color:var(--color-text-secondary)">支付回调未校验签名</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

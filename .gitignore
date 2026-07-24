@@ -37,6 +37,11 @@ htmlcov/
 # Docker
 .dockerignore
 
+# Node
+node_modules/
+.npmrc
+.codex/
+
 # Claude
 .claude/plans/
 .claude/worktrees/

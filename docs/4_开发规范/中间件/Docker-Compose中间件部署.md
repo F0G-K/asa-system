@@ -51,6 +51,7 @@ Nginx 使用 `gateway` profile。默认执行 `docker compose up -d` 时不会�
 - 不引入 Elasticsearch。MVP 的日志查询使用 PostgreSQL 索引和归档文件。
 - 不引入 Kubernetes。MVP 使用单机 Docker Compose。
 - 不引入 MinIO 或其他 S3 服务。MVP 使用受控宿主机数据卷；多节点阶段再迁移到 S3 兼容存储。
+- 不引入独立向量数据库（Qdrant、Milvus、Weaviate 等）。MVP 使用 PostgreSQL pgvector 扩展承载安全知识向量存储和 ANN 检索。
 - 不引入独立任务结果数据库。项目、阶段和任务状态以 PostgreSQL 为准。
 
 ## 3. 账号、端口与数据
@@ -412,7 +413,8 @@ volumes:
 ### 4.3 配置说明
 
 - PostgreSQL 使用 `scram-sha-256` 进行主机连接密码认证，数据库时区为 UTC。
-- PostgreSQL 版本满足数据库设计要求的 PostgreSQL 15 及以上，并支持 `pgcrypto`、复合外键、部分索引和约束触发器。
+- PostgreSQL 版本满足数据库设计要求的 PostgreSQL 15 及以上，并支持 `pgcrypto`、`pgvector`、复合外键、部分索引和约束触发器。
+- `pgvector` 扩展在数据库初始化 SQL 中通过 `CREATE EXTENSION IF NOT EXISTS vector` 启用，与 `pgcrypto` 在同一事务中创建。Docker Hub 的 `postgres:16.14-alpine` 镜像内置了 `pgvector` 扩展，无需额外构建。
 - Redis 关闭无密码的 `default` 用户，仅启用 `root` ACL 用户。
 - Redis AOF 用于降低短期队列和 Stream 在异常重启时的丢失量，但 Redis 数据仍不作为业务事实源。
 - Prometheus 当前只抓取自身。`api`、`worker`、`event-relay` 和 `executor` 的 `/metrics` 端口确定后，再加入 `scrape_configs`。
@@ -538,7 +540,7 @@ docker compose -f compose.yaml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U root -d asa_system < init.sql
 ```
 
-初始化 SQL 自带 `BEGIN`、`COMMIT`、`pgcrypto`、16 张表、索引、触发器和验证查询。不得在应用启动时隐式建表或改表。
+初始化 SQL 自带 `BEGIN`、`COMMIT`、`pgcrypto`、`pgvector`、18 张表、索引、触发器和验证查询。不得在应用启动时隐式建表或改表。
 
 ### 6.8 安全停止
 
@@ -638,7 +640,8 @@ Redis 协议默认未启用 TLS，认证信息在容器网络中传输。生产�
 - [ ] Redis 启用 AOF，但不被当作权威业务数据源。
 - [ ] Prometheus 数据源已自动配置到 Grafana。
 - [ ] API 不挂载 Docker Socket。
-- [ ] 未引入 Kafka、Elasticsearch、Kubernetes、MinIO 或额外数据库。
+- [ ] 未引入 Kafka、Elasticsearch、Kubernetes、MinIO、独立向量数据库或额外数据库。
+- [ ] PostgreSQL 已启用 `pgvector` 扩展（`CREATE EXTENSION IF NOT EXISTS vector`）。
 - [ ] 未自动执行数据库初始化 SQL。
 - [ ] 未执行 `docker compose up`、镜像拉取或数据卷变更。
 

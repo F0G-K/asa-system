@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>创建项目 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <div class="app-layout__main-wrap">
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">创建项目</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">创建项目</h1>
+            <p class="page-header__subtitle">登记源码信息与评估任务范围</p>
+          </div>
+        </div>
+        <div class="card" style="max-width:720px">
+          <div class="card__body">
+            <div class="form-group">
+              <label class="form-label form-label--required" for="proj-name">项目名称</label>
+              <input id="proj-name" class="form-input" type="text" maxlength="128" placeholder="请输入项目名称">
+              <span class="form-help">1 至 128 个字符</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label form-label--required">源码类型</label>
+              <div class="form-inline">
+                <label><input type="radio" name="source_type" value="local" checked> 本地源码</label>
+                <label><input type="radio" name="source_type" value="repository"> Git 仓库</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label form-label--required" for="source-path">源码地址</label>
+              <input id="source-path" class="form-input" type="text" placeholder="例如：./demo-app">
+              <span class="form-help">授权根目录内的相对路径</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label form-label--required" for="task-content">评估任务说明</label>
+              <textarea id="task-content" class="form-textarea" rows="4" placeholder="描述评估范围和重点关注方向"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label form-label--required" for="env-type">隔离环境类型</label>
+              <select id="env-type" class="form-select">
+                <option value="python-3.12">python-3.12</option>
+                <option value="node-22">node-22</option>
+              </select>
+              <span class="form-help">选择与源码匹配的运行环境</span>
+            </div>
+            <div class="flex-between" style="padding-top:var(--spacing-lg);border-top:1px solid var(--color-border);margin-top:var(--spacing-lg)">
+              <a href="project-list.html" class="btn">取消</a>
+              <a href="project-detail.html" class="btn btn--primary">创建项目</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

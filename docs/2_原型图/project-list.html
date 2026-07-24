@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目列表 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app-layout">
+  <!-- 侧边栏 -->
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="app-layout__main-wrap">
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">项目列表</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">项目列表</h1>
+            <p class="page-header__subtitle">管理所有安全评估项目</p>
+          </div>
+          <div class="page-header__actions">
+            <a href="project-create.html" class="btn btn--primary">+ 创建项目</a>
+          </div>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+          <span class="filter-chip">全部状态 ▾</span>
+          <span class="filter-chip">全部类型 ▾</span>
+          <span class="filter-chip">排序: 最近创建 ▾</span>
+          <div style="flex:1"></div>
+          <div class="search-box">
+            <span style="color:var(--color-text-placeholder)">🔍</span>
+            <input type="text" placeholder="搜索项目名称...">
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>项目名称</th>
+                <th>状态</th>
+                <th>源码类型</th>
+                <th>环境</th>
+                <th>最近运行</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a href="project-detail.html" class="data-table__link">商城支付服务安全评估</a></td>
+                <td><span class="tag tag--info">● 运行中</span></td>
+                <td>仓库</td>
+                <td>python-3.12</td>
+                <td style="color:var(--color-text-secondary)">2026-07-24 09:00</td>
+                <td>
+                  <a href="project-detail.html" style="color:var(--color-primary);font-size:var(--font-size-sm)">详情</a>
+                  <span style="color:var(--color-text-placeholder);margin:0 var(--spacing-sm)">⋯</span>
+                  <a href="monitor.html" style="color:var(--color-primary);font-size:var(--font-size-sm)">监控</a>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="project-detail.html" class="data-table__link">用户认证模块审计</a></td>
+                <td><span class="tag tag--success">● 已完成</span></td>
+                <td>本地</td>
+                <td>node-22</td>
+                <td style="color:var(--color-text-secondary)">2026-07-23 14:30</td>
+                <td>
+                  <a href="project-detail.html" style="color:var(--color-primary);font-size:var(--font-size-sm)">详情</a>
+                  <span style="color:var(--color-text-placeholder);margin:0 var(--spacing-sm)">⋯</span>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="project-detail.html" class="data-table__link">API网关安全评估</a></td>
+                <td><span style="color:var(--color-text-placeholder)">● 待启动</span></td>
+                <td>仓库</td>
+                <td>python-3.12</td>
+                <td style="color:var(--color-text-placeholder)">—</td>
+                <td>
+                  <a href="project-detail.html" style="color:var(--color-primary);font-size:var(--font-size-sm)">详情</a>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="project-detail.html" class="data-table__link">数据存储层渗透测试</a></td>
+                <td><span class="tag tag--danger">● 失败</span></td>
+                <td>本地</td>
+                <td>python-3.12</td>
+                <td style="color:var(--color-text-secondary)">2026-07-22 10:15</td>
+                <td>
+                  <a href="project-detail.html" style="color:var(--color-primary);font-size:var(--font-size-sm)">详情</a>
+                  <span style="color:var(--color-text-placeholder);margin:0 var(--spacing-sm)">⋯</span>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="project-detail.html" class="data-table__link">消息队列安全审计</a></td>
+                <td><span style="color:var(--color-text-placeholder)">● 已停止</span></td>
+                <td>仓库</td>
+                <td>node-22</td>
+                <td style="color:var(--color-text-secondary)">2026-07-20 16:45</td>
+                <td>
+                  <a href="project-detail.html" style="color:var(--color-primary);font-size:var(--font-size-sm)">详情</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <span>共 5 个项目</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

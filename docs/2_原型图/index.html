@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASA System — 原型图导航</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="nav-page">
+  <div class="nav-header">
+    <h1>ASA System</h1>
+    <p>自动化安全评估系统 — 前端页面原型（暗色主题）</p>
+  </div>
+  <div class="nav-grid">
+    <a href="login.html" class="nav-card">
+      <div class="nav-card__group">认证与系统</div>
+      <div class="nav-card__title">登录页</div>
+      <div class="nav-card__route">/login</div>
+      <div class="nav-card__desc">用户登录，输入用户名和密码进入系统。</div>
+    </a>
+    <a href="system-init.html" class="nav-card">
+      <div class="nav-card__group">认证与系统</div>
+      <div class="nav-card__title">系统初始化</div>
+      <div class="nav-card__route">/system/init</div>
+      <div class="nav-card__desc">首次使用时创建管理员账户。</div>
+    </a>
+    <a href="403.html" class="nav-card">
+      <div class="nav-card__group">认证与系统</div>
+      <div class="nav-card__title">403 无权访问</div>
+      <div class="nav-card__route">/403</div>
+      <div class="nav-card__desc">没有访问权限时显示的页面。</div>
+    </a>
+    <a href="404.html" class="nav-card">
+      <div class="nav-card__group">认证与系统</div>
+      <div class="nav-card__title">404 页面不存在</div>
+      <div class="nav-card__route">/:pathMatch(.*)*</div>
+      <div class="nav-card__desc">访问不存在的页面时显示。</div>
+    </a>
+    <a href="project-list.html" class="nav-card">
+      <div class="nav-card__group">项目管理</div>
+      <div class="nav-card__title">项目列表</div>
+      <div class="nav-card__route">/projects</div>
+      <div class="nav-card__desc">查看所有安全评估项目，支持筛选、排序和分页。</div>
+    </a>
+    <a href="project-create.html" class="nav-card">
+      <div class="nav-card__group">项目管理</div>
+      <div class="nav-card__title">创建项目</div>
+      <div class="nav-card__route">/projects/new</div>
+      <div class="nav-card__desc">登记源码信息与评估任务范围。</div>
+    </a>
+    <a href="project-detail.html" class="nav-card">
+      <div class="nav-card__group">项目管理</div>
+      <div class="nav-card__title">项目详情</div>
+      <div class="nav-card__route">/projects/:projectId</div>
+      <div class="nav-card__desc">项目基本信息、评估任务、运行环境和统计概览。</div>
+    </a>
+    <a href="monitor.html" class="nav-card">
+      <div class="nav-card__group">实时监控</div>
+      <div class="nav-card__title">实时监控</div>
+      <div class="nav-card__route">/projects/:projectId/monitor</div>
+      <div class="nav-card__desc">评估阶段进度、角色任务、消息和日志实时查看。</div>
+    </a>
+    <a href="vulnerability-list.html" class="nav-card">
+      <div class="nav-card__group">漏洞管理</div>
+      <div class="nav-card__title">漏洞列表</div>
+      <div class="nav-card__route">/projects/:projectId/vulnerabilities</div>
+      <div class="nav-card__desc">项目发现的漏洞列表，支持风险等级和验证状态筛选。</div>
+    </a>
+    <a href="vulnerability-detail.html" class="nav-card">
+      <div class="nav-card__group">漏洞管理</div>
+      <div class="nav-card__title">漏洞详情</div>
+      <div class="nav-card__route">/projects/:projectId/vulnerabilities/:vulnId</div>
+      <div class="nav-card__desc">漏洞基本信息、影响范围、触发条件和复现步骤。</div>
+    </a>
+    <a href="attack-path-list.html" class="nav-card">
+      <div class="nav-card__group">攻击路径</div>
+      <div class="nav-card__title">攻击路径列表</div>
+      <div class="nav-card__route">/projects/:projectId/attack-paths</div>
+      <div class="nav-card__desc">将漏洞串联成攻击链路，展示攻击者可能的渗透路径。</div>
+    </a>
+    <a href="attack-path-detail.html" class="nav-card">
+      <div class="nav-card__group">攻击路径</div>
+      <div class="nav-card__title">攻击路径详情</div>
+      <div class="nav-card__route">/projects/:projectId/attack-paths/:pathId</div>
+      <div class="nav-card__desc">攻击步骤时间线，每步关联具体漏洞。</div>
+    </a>
+    <a href="report.html" class="nav-card">
+      <div class="nav-card__group">报告</div>
+      <div class="nav-card__title">评估报告</div>
+      <div class="nav-card__route">/projects/:projectId/report</div>
+      <div class="nav-card__desc">评估报告预览与下载，支持 Markdown 和 HTML 格式。</div>
+    </a>
+    <a href="system-config.html" class="nav-card">
+      <div class="nav-card__group">系统管理</div>
+      <div class="nav-card__title">系统配置</div>
+      <div class="nav-card__route">/system/config</div>
+      <div class="nav-card__desc">评估参数、大模型 API、环境类型和保留策略管理（管理员）。</div>
+    </a>
+  </div>
+</div>
+</body>
+</html>

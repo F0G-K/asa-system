@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1580" viewBox="0 0 2600 1580" role="img" aria-labelledby="diagram-title diagram-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1750" viewBox="0 0 2600 1750" role="img" aria-labelledby="diagram-title diagram-desc">
   <title id="diagram-title">自动化安全评估系统模块关系架构图</title>
-  <desc id="diagram-desc">展示用户与前端、控制面、异步编排、隔离执行面、数据与基础设施之间的模块关系、调用方向和数据流向。</desc>
+  <desc id="diagram-desc">展示用户与前端、控制面、异步编排、隔离执行面、数据与基础设施之间的模块关系、调用方向和数据流向。包含知识库与 RAG 模块。</desc>
   <defs>
     <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L12,6 L0,12 z" fill="#2f6fed"/>
@@ -16,6 +16,9 @@
     </marker>
     <marker id="arrow-gray" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L12,6 L0,12 z" fill="#718096"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#0d9488"/>
     </marker>
     <style>
       .title { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 34px; font-weight: 700; fill: #172033; }
@@ -36,25 +39,27 @@
       .node-purple { fill: #ffffff; stroke: #b9a4ef; stroke-width: 1.5; }
       .node-green { fill: #ffffff; stroke: #8ed4b5; stroke-width: 1.5; }
       .node-orange { fill: #ffffff; stroke: #e8b968; stroke-width: 1.5; }
+      .node-teal { fill: #ffffff; stroke: #5eb8b0; stroke-width: 1.5; }
       .tag-blue { fill: #e6efff; stroke: #b8ccf5; }
       .tag-purple { fill: #eee9ff; stroke: #d0c1f8; }
       .tag-green { fill: #e3f7ed; stroke: #b8e3d0; }
     .tag-orange { fill: #fff0d7; stroke: #f3d39d; }
     .tag-gray { fill: #eef2f7; stroke: #d8e0eb; }
+    .tag-teal { fill: #e6f7f5; stroke: #a8dbd6; }
     .layer-badge { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 12px; font-weight: 700; fill: #526174; }
     .edge-bg { fill: #ffffff; opacity: .96; }
     .legend-box { fill: #f8fafc; stroke: #d8e0eb; stroke-width: 2; }
     </style>
   </defs>
 
-  <rect width="2600" height="1580" fill="#ffffff"/>
+  <rect width="2600" height="1750" fill="#ffffff"/>
   <text x="70" y="70" class="title">自动化安全评估系统 · 模块关系架构图</text>
-  <text x="70" y="103" class="subtitle">基于 PRD V1.0 与《概要设计总纲》：前后端分离、模块化单体、异步任务、项目级隔离执行、数据库事实源</text>
+  <text x="70" y="103" class="subtitle">基于 PRD V1.0 与《概要设计总纲》：前后端分离、模块化单体、异步任务、RAG 增强分析、知识库管理、项目级隔离执行、数据库事实源</text>
 
   <!-- Access layer -->
   <rect x="50" y="135" width="2500" height="190" rx="18" class="layer-blue"/>
   <text x="78" y="171" class="section">用户与交互层</text>
-  <text x="78" y="198" class="section-note">通过统一入口访问项目生命周期、监控、漏洞、攻击路径、报告和系统配置</text>
+  <text x="78" y="198" class="section-note">通过统一入口访问项目生命周期、监控、漏洞、攻击路径、报告、知识库和系统配置</text>
   <rect x="2425" y="153" width="88" height="28" rx="14" class="tag-blue"/>
   <text x="2469" y="172" text-anchor="middle" class="layer-badge">L1 · 访问</text>
 
@@ -73,7 +78,7 @@
   <rect x="1250" y="205" width="390" height="100" rx="12" class="node-blue"/>
   <text x="1445" y="235" text-anchor="middle" class="node-title">前端业务模块</text>
   <text x="1278" y="261" class="node-text">认证 · 项目 · 实时监控 · 漏洞</text>
-  <text x="1278" y="284" class="node-text">攻击路径 · 报告 · 配置 · 基础能力</text>
+  <text x="1278" y="284" class="node-text">攻击路径 · 报告 · 知识库 · 配置</text>
 
   <rect x="1740" y="205" width="370" height="100" rx="12" class="node-blue"/>
   <text x="1925" y="235" text-anchor="middle" class="node-title">REST API + WebSocket</text>
@@ -91,7 +96,7 @@
   <path d="M2110 255 H2210" fill="none" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
 
   <!-- Main plane containers -->
-  <rect x="50" y="360" width="760" height="590" rx="18" class="layer-blue"/>
+  <rect x="50" y="360" width="760" height="740" rx="18" class="layer-blue"/>
   <text x="78" y="398" class="section">控制面 · API 业务模块</text>
   <text x="78" y="424" class="section-note">校验、授权、事务、查询与异步任务受理；不直接接触 Docker Engine</text>
   <rect x="685" y="378" width="88" height="28" rx="14" class="tag-blue"/>
@@ -115,15 +120,23 @@
 
   <rect x="85" y="764" width="690" height="137" rx="12" class="node-blue"/>
   <rect x="105" y="782" width="150" height="32" rx="16" class="tag-blue"/>
-  <text x="180" y="804" text-anchor="middle" class="small">结果与治理</text>
+  <text x="180" y="804" text-anchor="middle" class="small">结果管理</text>
   <text x="110" y="842" class="node-title">vulnerabilities · attack_paths</text>
   <text x="110" y="866" class="node-text">漏洞标准化、验证、证据与攻击路径关联</text>
   <text x="430" y="842" class="node-title">reports · config · audit · cleanup</text>
   <text x="430" y="866" class="node-text">报告生成、配置、审计和幂等清理</text>
 
-  <rect x="850" y="360" width="820" height="590" rx="18" class="layer-purple"/>
+  <rect x="85" y="920" width="690" height="130" rx="12" class="node-teal"/>
+  <rect x="105" y="938" width="150" height="32" rx="16" class="tag-teal"/>
+  <text x="180" y="960" text-anchor="middle" class="small">知识库与RAG</text>
+  <text x="110" y="998" class="node-title">knowledge</text>
+  <text x="110" y="1022" class="node-text">安全知识条目管理 · 向量化 · 语义检索 · 效果追踪</text>
+  <text x="430" y="998" class="node-title">RAG 检索增强</text>
+  <text x="430" y="1022" class="node-text">code_analyst + vuln_verifier 自动知识注入</text>
+
+  <rect x="850" y="360" width="820" height="740" rx="18" class="layer-purple"/>
   <text x="878" y="398" class="section">控制面 · 异步编排与实时协同</text>
-  <text x="878" y="424" class="section-note">长耗时操作通过队列异步执行；阶段结果落库后再发布实时事件</text>
+  <text x="878" y="424" class="section-note">长耗时操作通过队列异步执行；阶段结果落库后再发布实时事件；RAG 嵌入分析和验证阶段</text>
   <rect x="1545" y="378" width="98" height="28" rx="14" class="tag-purple"/>
   <text x="1594" y="397" text-anchor="middle" class="layer-badge">L3 · 编排</text>
 
@@ -137,7 +150,7 @@
   <rect x="905" y="604" width="150" height="32" rx="16" class="tag-purple"/>
   <text x="980" y="626" text-anchor="middle" class="small">Worker 执行器</text>
   <text x="910" y="665" class="node-title">worker</text>
-  <text x="910" y="689" class="node-text">阶段编排 · LangGraph 角色协作 · 工具权限 · 结果持久化</text>
+  <text x="910" y="689" class="node-text">阶段编排 · LangGraph 角色协作 · RAG 知识检索 · 结果持久化</text>
   <text x="910" y="713" class="node-text">环境扫描 → 代码分析 → 漏洞验证 → 报告生成</text>
 
   <rect x="885" y="750" width="360" height="151" rx="12" class="node-purple"/>
@@ -145,7 +158,7 @@
   <text x="910" y="810" class="node-text">general · environment_inspector</text>
   <text x="910" y="834" class="node-text">code_analyst · vulnerability_verifier</text>
   <text x="910" y="858" class="node-text">report_editor · operations_assistant</text>
-  <text x="910" y="882" class="small">按阶段分配工具，模型输出先结构化校验</text>
+  <text x="910" y="882" class="small">code_analyst + vuln_verifier: RAG 增强</text>
 
   <rect x="1270" y="750" width="365" height="151" rx="12" class="node-purple"/>
   <text x="1452" y="782" text-anchor="middle" class="node-title">monitoring · event-relay</text>
@@ -154,7 +167,13 @@
   <text x="1295" y="858" class="node-text">event_id / sequence 去重</text>
   <text x="1295" y="882" class="small">WebSocket 断线后按序号续传或 REST 补偿</text>
 
-  <rect x="1710" y="360" width="840" height="590" rx="18" class="layer-green"/>
+  <rect x="885" y="920" width="750" height="130" rx="12" class="node-teal"/>
+  <rect x="905" y="938" width="150" height="32" rx="16" class="tag-teal"/>
+  <text x="980" y="960" text-anchor="middle" class="small">RAG 知识处理</text>
+  <text x="910" y="998" class="node-title">KnowledgeService · RAGRetriever</text>
+  <text x="910" y="1022" class="node-text">查询提取 · Embedding 向量化 · pgvector ANN 检索 · 重排序 · 上下文注入 · 降级容错</text>
+
+  <rect x="1710" y="360" width="840" height="740" rx="18" class="layer-green"/>
   <text x="1738" y="398" class="section">执行面 · 项目级安全隔离</text>
   <text x="1738" y="424" class="section-note">只有隔离执行网关可以访问 Docker Engine；源码只读，工作目录可写</text>
   <rect x="2425" y="378" width="98" height="28" rx="14" class="tag-green"/>
@@ -183,49 +202,50 @@
   <text x="1775" y="863" class="small">控制面与执行面通过内部协议解耦，API 不直接执行分析命令</text>
 
   <!-- Data and infrastructure -->
-  <rect x="50" y="995" width="2500" height="430" rx="18" class="layer-orange"/>
-  <text x="78" y="1033" class="section">数据与基础设施层</text>
-  <text x="78" y="1059" class="section-note">业务状态、实时支撑、文件制品和系统观测分别承担清晰职责</text>
-  <rect x="2425" y="1013" width="98" height="28" rx="14" class="tag-orange"/>
-  <text x="2474" y="1032" text-anchor="middle" class="layer-badge">L5 · 数据</text>
+  <rect x="50" y="1145" width="2500" height="430" rx="18" class="layer-orange"/>
+  <text x="78" y="1183" class="section">数据与基础设施层</text>
+  <text x="78" y="1209" class="section-note">业务状态、实时支撑、安全知识向量库、文件制品和系统观测分别承担清晰职责</text>
+  <rect x="2425" y="1163" width="98" height="28" rx="14" class="tag-orange"/>
+  <text x="2474" y="1182" text-anchor="middle" class="layer-badge">L5 · 数据</text>
 
-  <rect x="90" y="1092" width="570" height="260" rx="12" class="node-orange"/>
-  <rect x="115" y="1115" width="190" height="32" rx="16" class="tag-orange"/>
-  <text x="210" y="1137" text-anchor="middle" class="small">权威数据源</text>
-  <text x="120" y="1180" class="node-title">PostgreSQL</text>
-  <text x="120" y="1207" class="node-text">users · projects · runtime_stages</text>
-  <text x="120" y="1231" class="node-text">worker_tasks · vulnerabilities · attack_paths</text>
-  <text x="120" y="1255" class="node-text">chat_messages · runtime_logs · resource_usages</text>
-  <text x="120" y="1279" class="node-text">reports · audit_logs · domain_events</text>
-  <text x="120" y="1319" class="small">状态先事务落库，domain_events 与状态变更同事务</text>
+  <rect x="90" y="1242" width="570" height="260" rx="12" class="node-orange"/>
+  <rect x="115" y="1265" width="190" height="32" rx="16" class="tag-orange"/>
+  <text x="210" y="1287" text-anchor="middle" class="small">权威数据源</text>
+  <text x="120" y="1330" class="node-title">PostgreSQL + pgvector</text>
+  <text x="120" y="1357" class="node-text">users · projects · runtime_stages</text>
+  <text x="120" y="1381" class="node-text">worker_tasks · vulnerabilities · attack_paths</text>
+  <text x="120" y="1405" class="node-text">chat_messages · runtime_logs · resource_usages</text>
+  <text x="120" y="1429" class="node-text">reports · audit_logs · domain_events</text>
+  <text x="120" y="1453" class="node-text">knowledge_entries · knowledge_retrievals</text>
+  <text x="120" y="1477" class="small">pgvector ANN 向量检索 · IVFFlat 余弦相似度 · 状态先事务落库</text>
 
-  <rect x="715" y="1092" width="520" height="260" rx="12" class="node-orange"/>
-  <rect x="740" y="1115" width="190" height="32" rx="16" class="tag-orange"/>
-  <text x="835" y="1137" text-anchor="middle" class="small">短期运行支撑</text>
-  <text x="745" y="1180" class="node-title">Redis</text>
-  <text x="745" y="1207" class="node-text">Celery Broker / 任务队列</text>
-  <text x="745" y="1231" class="node-text">Redis Stream / 实时事件</text>
-  <text x="745" y="1255" class="node-text">取消标记 / 分布式锁 / 限流计数</text>
-  <text x="745" y="1319" class="small">不承担业务状态恢复，数据可重建</text>
+  <rect x="715" y="1242" width="520" height="260" rx="12" class="node-orange"/>
+  <rect x="740" y="1265" width="190" height="32" rx="16" class="tag-orange"/>
+  <text x="835" y="1287" text-anchor="middle" class="small">短期运行支撑</text>
+  <text x="745" y="1330" class="node-title">Redis</text>
+  <text x="745" y="1357" class="node-text">Celery Broker / 任务队列</text>
+  <text x="745" y="1381" class="node-text">Redis Stream / 实时事件</text>
+  <text x="745" y="1405" class="node-text">取消标记 / 分布式锁 / 限流计数</text>
+  <text x="745" y="1469" class="small">不承担业务状态恢复，数据可重建</text>
 
-  <rect x="1290" y="1092" width="520" height="260" rx="12" class="node-orange"/>
-  <rect x="1315" y="1115" width="190" height="32" rx="16" class="tag-orange"/>
-  <text x="1410" y="1137" text-anchor="middle" class="small">文件制品存储</text>
-  <text x="1320" y="1180" class="node-title">受控数据卷 / ArtifactStorage</text>
-  <text x="1320" y="1207" class="node-text">repositories/{project_id}/ · 源码只读</text>
-  <text x="1320" y="1231" class="node-text">workspace/{project_id}/ · 临时工作文件</text>
-  <text x="1320" y="1255" class="node-text">reports/{project_id}/ · 报告文件</text>
-  <text x="1320" y="1279" class="node-text">runtime_logs/{project_id}/ · 归档日志</text>
-  <text x="1320" y="1319" class="small">数据库保存文件逻辑键、摘要和可查询正文</text>
+  <rect x="1290" y="1242" width="520" height="260" rx="12" class="node-orange"/>
+  <rect x="1315" y="1265" width="190" height="32" rx="16" class="tag-orange"/>
+  <text x="1410" y="1287" text-anchor="middle" class="small">文件制品存储</text>
+  <text x="1320" y="1330" class="node-title">受控数据卷 / ArtifactStorage</text>
+  <text x="1320" y="1357" class="node-text">repositories/{project_id}/ · 源码只读</text>
+  <text x="1320" y="1381" class="node-text">workspace/{project_id}/ · 临时工作文件</text>
+  <text x="1320" y="1405" class="node-text">reports/{project_id}/ · 报告文件</text>
+  <text x="1320" y="1429" class="node-text">runtime_logs/{project_id}/ · 归档日志</text>
+  <text x="1320" y="1469" class="small">数据库保存文件逻辑键、摘要和可查询正文</text>
 
-  <rect x="1865" y="1092" width="650" height="260" rx="12" class="node-orange"/>
-  <rect x="1890" y="1115" width="190" height="32" rx="16" class="tag-orange"/>
-  <text x="1985" y="1137" text-anchor="middle" class="small">系统可观测性</text>
-  <text x="1895" y="1180" class="node-title">Prometheus + Grafana</text>
-  <text x="1895" y="1207" class="node-text">API 延迟、错误率、队列长度、任务耗时</text>
-  <text x="1895" y="1231" class="node-text">容器 CPU / 内存 / 进程 / 模型 token</text>
-  <text x="1895" y="1255" class="node-text">健康检查：API、PostgreSQL、Redis、Executor</text>
-  <text x="1895" y="1319" class="small">项目监控数据仍通过业务接口和实时事件展示</text>
+  <rect x="1865" y="1242" width="650" height="260" rx="12" class="node-orange"/>
+  <rect x="1890" y="1265" width="190" height="32" rx="16" class="tag-orange"/>
+  <text x="1985" y="1287" text-anchor="middle" class="small">系统可观测性</text>
+  <text x="1895" y="1330" class="node-title">Prometheus + Grafana</text>
+  <text x="1895" y="1357" class="node-text">API 延迟、错误率、队列长度、任务耗时</text>
+  <text x="1895" y="1381" class="node-text">容器 CPU / 内存 / 进程 / 模型 token</text>
+  <text x="1895" y="1405" class="node-text">健康检查：API、PostgreSQL、Redis、Executor</text>
+  <text x="1895" y="1469" class="small">项目监控数据仍通过业务接口和实时事件展示</text>
 
   <!-- Main relationships -->
   <path d="M1670 545 H1710" fill="none" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
@@ -247,19 +267,27 @@
   <rect x="2088" y="630" width="50" height="22" rx="6" class="edge-bg"/>
   <text x="2094" y="646" class="edge-label">运行时</text>
 
+  <!-- RAG knowledge flow from L3 knowledge service to L2 knowledge module -->
+  <path d="M885 985 H775" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrow-teal)"/>
+  <rect x="762" y="960" width="112" height="22" rx="6" class="edge-bg"/>
+  <text x="768" y="976" class="edge-label">知识库管理 API</text>
+
   <!-- Data connections from control/worker to lower layer -->
-  <path d="M420 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <rect x="432" y="978" width="70" height="22" rx="6" class="edge-bg"/>
-  <text x="438" y="994" class="edge-label">事务读写</text>
-  <path d="M1200 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <rect x="1212" y="978" width="110" height="22" rx="6" class="edge-bg"/>
-  <text x="1218" y="994" class="edge-label">状态 / 结果落库</text>
-  <path d="M1450 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <rect x="1462" y="978" width="52" height="22" rx="6" class="edge-bg"/>
-  <text x="1468" y="994" class="edge-label">事件流</text>
-  <path d="M1960 950 V1075" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <rect x="1972" y="978" width="70" height="22" rx="6" class="edge-bg"/>
-  <text x="1978" y="994" class="edge-label">指标采集</text>
+  <path d="M420 1100 V1225" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <rect x="432" y="1128" width="70" height="22" rx="6" class="edge-bg"/>
+  <text x="438" y="1144" class="edge-label">事务读写</text>
+  <path d="M1050 1050 V1225" fill="none" stroke="#0d9488" stroke-width="3" marker-end="url(#arrow-teal)"/>
+  <rect x="1062" y="1106" width="98" height="22" rx="6" class="edge-bg"/>
+  <text x="1068" y="1122" class="edge-label">RAG 向量检索</text>
+  <path d="M1200 1100 V1225" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <rect x="1212" y="1128" width="110" height="22" rx="6" class="edge-bg"/>
+  <text x="1218" y="1144" class="edge-label">状态 / 结果落库</text>
+  <path d="M1450 1100 V1225" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <rect x="1462" y="1128" width="52" height="22" rx="6" class="edge-bg"/>
+  <text x="1468" y="1144" class="edge-label">事件流</text>
+  <path d="M1960 1100 V1225" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <rect x="1972" y="1128" width="70" height="22" rx="6" class="edge-bg"/>
+  <text x="1978" y="1144" class="edge-label">指标采集</text>
 
   <!-- Cross-layer relationships -->
   <path d="M2025 290 V360" fill="none" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
@@ -271,15 +299,17 @@
   <path d="M1100 731 V750" fill="none" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
 
   <!-- Legend and boundary notes -->
-  <rect x="50" y="1460" width="2500" height="80" rx="14" class="legend-box"/>
-  <text x="80" y="1493" class="node-title">关系图例</text>
-  <line x1="250" y1="1488" x2="325" y2="1488" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
-  <text x="340" y="1493" class="small">同步调用 / API 受理</text>
-  <line x1="550" y1="1488" x2="625" y2="1488" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
-  <text x="640" y="1493" class="small">异步任务 / 事件编排</text>
-  <line x1="900" y1="1488" x2="975" y2="1488" stroke="#1a9a68" stroke-width="3" marker-end="url(#arrow-green)"/>
-  <text x="990" y="1493" class="small">执行面调用</text>
-  <line x1="1190" y1="1488" x2="1265" y2="1488" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <text x="1280" y="1493" class="small">持久化 / 观测</text>
-  <text x="1680" y="1493" class="small">关键约束：PostgreSQL 是业务状态事实源；Redis 只保存可重建的队列与短期事件；API 不挂载 Docker Socket。</text>
+  <rect x="50" y="1610" width="2500" height="80" rx="14" class="legend-box"/>
+  <text x="80" y="1643" class="node-title">关系图例</text>
+  <line x1="250" y1="1638" x2="325" y2="1638" stroke="#2f6fed" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <text x="340" y="1643" class="small">同步调用 / API 受理</text>
+  <line x1="550" y1="1638" x2="625" y2="1638" stroke="#7c4dff" stroke-width="3" marker-end="url(#arrow-purple)"/>
+  <text x="640" y="1643" class="small">异步任务 / 事件编排</text>
+  <line x1="900" y1="1638" x2="975" y2="1638" stroke="#1a9a68" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="990" y="1643" class="small">执行面调用</text>
+  <line x1="1190" y1="1638" x2="1265" y2="1638" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <text x="1280" y="1643" class="small">持久化 / 观测</text>
+  <line x1="1460" y1="1638" x2="1535" y2="1638" stroke="#0d9488" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#arrow-teal)"/>
+  <text x="1550" y="1643" class="small">知识检索 / RAG 数据流</text>
+  <text x="1780" y="1643" class="small">关键约束：PostgreSQL 是业务状态和安全知识的唯一事实源；Redis 只保存可重建的队列与短期事件；API 不挂载 Docker Socket。</text>
 </svg>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统配置 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <div class="app-layout__main-wrap">
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">系统配置</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">系统配置</h1>
+            <p class="page-header__subtitle">管理评估参数、大模型 API、环境类型和保留策略</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:800px">
+          <div class="card__body">
+            <div class="config-meta">
+              <span>当前版本：5</span>
+              <span>最后更新：2026-07-20 09:30:00</span>
+            </div>
+
+            <div class="config-grid">
+              <div class="form-group">
+                <label class="form-label" for="timeout">默认超时（秒）</label>
+                <input id="timeout" class="form-input" type="number" value="3600" min="60" max="86400">
+                <span class="form-help">单个项目的最大评估时长，60 至 86400 秒</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="concurrent">最大并发项目数</label>
+                <input id="concurrent" class="form-input" type="number" value="5" min="1" max="20">
+                <span class="form-help">同时运行的最大项目数量</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="log-retention">日志保留天数</label>
+                <input id="log-retention" class="form-input" type="number" value="30" min="1" max="365">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="file-retention">文件保留天数</label>
+                <input id="file-retention" class="form-input" type="number" value="90" min="1" max="365">
+              </div>
+            </div>
+
+            <!-- 大模型 API 配置 -->
+            <div class="config-section">
+              <h3 class="config-section__title">大模型 API 配置</h3>
+              <p class="config-section__desc">配置评估系统调用的大语言模型接口，支持任意 OpenAI 兼容的 API 端点</p>
+              <div class="config-grid">
+                <div class="form-group">
+                  <label class="form-label" for="api-base-url">API 地址</label>
+                  <input id="api-base-url" class="form-input" type="url" value="https://api.openai.com/v1" placeholder="https://api.openai.com/v1">
+                  <span class="form-help">OpenAI 兼容的 API 端点地址</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="api-key">API 密钥</label>
+                  <input id="api-key" class="form-input" type="password" value="sk-••••••••" placeholder="sk-...">
+                  <span class="form-help">密钥加密存储，不会在日志或前端暴露明文</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="model-name">模型名称</label>
+                  <input id="model-name" class="form-input" type="text" value="gpt-4o" placeholder="gpt-4o">
+                  <span class="form-help">大模型标识，如 gpt-4o、claude-3-opus、deepseek-chat</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="max-tokens">最大 Token 数</label>
+                  <input id="max-tokens" class="form-input" type="number" value="4096" min="256" max="128000">
+                  <span class="form-help">单次请求的最大输出 Token 数</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="temperature">温度 (Temperature)</label>
+                  <input id="temperature" class="form-input" type="number" value="0.7" min="0" max="2" step="0.1">
+                  <span class="form-help">0 = 确定性输出，2 = 最大随机性，建议 0.7</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 环境类型 -->
+            <div class="form-group" style="margin-top:var(--spacing-xl);padding-top:var(--spacing-lg);border-top:1px solid var(--color-border)">
+              <label class="form-label">启用的隔离环境类型</label>
+              <div class="env-input-row">
+                <input class="form-input" type="text" placeholder="输入环境类型标识，如 python-3.12" style="flex:1">
+                <button class="btn">添加</button>
+              </div>
+              <div class="env-tags">
+                <span class="tag tag--info">python-3.12 <span style="cursor:pointer;margin-left:4px;color:var(--color-text-secondary)">×</span></span>
+                <span class="tag tag--info">node-22 <span style="cursor:pointer;margin-left:4px;color:var(--color-text-secondary)">×</span></span>
+                <span class="tag tag--info">java-21 <span style="cursor:pointer;margin-left:4px;color:var(--color-text-secondary)">×</span></span>
+              </div>
+            </div>
+
+            <div class="flex-between" style="margin-top:var(--spacing-xl);padding-top:var(--spacing-lg);border-top:1px solid var(--color-border)">
+              <span></span>
+              <button class="btn btn--primary">保存配置</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

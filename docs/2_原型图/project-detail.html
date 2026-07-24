@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目详情 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <div class="app-layout__main-wrap">
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <a href="project-list.html">项目列表</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">商城支付服务安全评估</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">商城支付服务安全评估</h1>
+            <p class="page-header__subtitle">项目详情、评估任务、运行环境和统计概览</p>
+          </div>
+          <div class="page-header__actions">
+            <a href="monitor.html" class="btn btn--primary">实时监控</a>
+            <a href="vulnerability-list.html" class="btn">漏洞管理</a>
+            <a href="attack-path-list.html" class="btn">攻击路径</a>
+            <a href="report.html" class="btn">评估报告</a>
+          </div>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="card" style="margin-bottom:var(--spacing-lg)">
+          <div class="card__body">
+            <h3 class="section-subtitle">基本信息</h3>
+            <div class="config-grid">
+              <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">
+                <div style="color:var(--color-text-placeholder)">项目状态</div>
+                <span class="tag tag--info" style="margin-top:var(--spacing-xs)">● 运行中</span>
+              </div>
+              <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">
+                <div style="color:var(--color-text-placeholder)">源码类型</div>
+                <div style="color:var(--color-text-primary);margin-top:var(--spacing-xs)">Git 仓库</div>
+              </div>
+              <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">
+                <div style="color:var(--color-text-placeholder)">源码地址</div>
+                <code style="margin-top:var(--spacing-xs);display:inline-block">git@github.com:demo/payment-service.git</code>
+              </div>
+              <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">
+                <div style="color:var(--color-text-placeholder)">隔离环境</div>
+                <span class="tag tag--info" style="margin-top:var(--spacing-xs)">python-3.12</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 评估任务 -->
+        <div class="card" style="margin-bottom:var(--spacing-lg)">
+          <div class="card__body">
+            <h3 class="section-subtitle">评估任务</h3>
+            <p style="font-size:var(--font-size-base);color:var(--color-text-regular)">
+              评估支付回调、订单权限校验和数据库访问层，重点检查注入与越权风险。
+            </p>
+          </div>
+        </div>
+
+        <!-- 统计概览 -->
+        <div class="card">
+          <div class="card__body">
+            <h3 class="section-subtitle">统计概览</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-md)">
+              <div style="background:var(--color-fill-hover);border-radius:var(--radius-md);padding:var(--spacing-lg);text-align:center">
+                <div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-danger)">4</div>
+                <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">发现漏洞</div>
+              </div>
+              <div style="background:var(--color-fill-hover);border-radius:var(--radius-md);padding:var(--spacing-lg);text-align:center">
+                <div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-success)">2</div>
+                <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">已验证漏洞</div>
+              </div>
+              <div style="background:var(--color-fill-hover);border-radius:var(--radius-md);padding:var(--spacing-lg);text-align:center">
+                <div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-primary)">1</div>
+                <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">攻击路径</div>
+              </div>
+              <div style="background:var(--color-fill-hover);border-radius:var(--radius-md);padding:var(--spacing-lg);text-align:center">
+                <div style="font-size:var(--font-size-3xl);font-weight:600;color:var(--color-primary)">8</div>
+                <div style="font-size:var(--font-size-sm);color:var(--color-text-secondary)">角色任务</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,299 @@
+name: asa-middleware
+
+services:
+  postgres:
+    image: postgres:16.14-alpine
+    container_name: asa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: asa_system
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: kkkcm520
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      PGDATA: /var/lib/postgresql/data/pgdata
+      PGTZ: UTC
+      TZ: UTC
+    command:
+      - postgres
+      - -c
+      - timezone=UTC
+      - -c
+      - password_encryption=scram-sha-256
+    ports:
+      - name: postgres
+        target: 5432
+        host_ip: 127.0.0.1
+        published: "5432"
+        protocol: tcp
+        app_protocol: postgresql
+        mode: host
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -h 127.0.0.1 -p 5432 -U root -d asa_system
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 60s
+
+  redis:
+    image: redis:7.4.9-alpine
+    container_name: asa-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --aclfile
+      - /usr/local/etc/redis/users.acl
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --save
+      - "60"
+      - "1000"
+      - --loglevel
+      - warning
+    configs:
+      - source: redis_acl
+        target: /usr/local/etc/redis/users.acl
+        mode: 0444
+    ports:
+      - name: redis
+        target: 6379
+        host_ip: 127.0.0.1
+        published: "6379"
+        protocol: tcp
+        app_protocol: redis
+        mode: host
+    volumes:
+      - redis_data:/data
+    networks:
+      - app
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - --user
+        - root
+        - --pass
+        - kkkcm520
+        - --no-auth-warning
+        - ping
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 30s
+
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    container_name: asa-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.wal-compression
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+        mode: 0444
+    ports:
+      - name: prometheus
+        target: 9090
+        host_ip: 127.0.0.1
+        published: "9090"
+        protocol: tcp
+        app_protocol: http
+        mode: host
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - app
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --quiet --spider http://127.0.0.1:9090/-/ready
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 30s
+
+  grafana:
+    image: grafana/grafana:13.0.2
+    container_name: asa-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: root
+      GF_SECURITY_ADMIN_PASSWORD: kkkcm520
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_LOG_MODE: console
+      TZ: UTC
+    configs:
+      - source: grafana_datasource
+        target: /etc/grafana/provisioning/datasources/prometheus.yml
+        mode: 0444
+    ports:
+      - name: grafana
+        target: 3000
+        host_ip: 127.0.0.1
+        published: "3000"
+        protocol: tcp
+        app_protocol: http
+        mode: host
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - app
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --quiet --spider http://127.0.0.1:3000/api/health
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    stop_grace_period: 30s
+
+  nginx:
+    image: nginx:1.28.3-alpine
+    container_name: asa-nginx
+    restart: unless-stopped
+    profiles:
+      - gateway
+    configs:
+      - source: nginx_default
+        target: /etc/nginx/conf.d/default.conf
+        mode: 0444
+    ports:
+      - name: gateway
+        target: 80
+        host_ip: 127.0.0.1
+        published: "8080"
+        protocol: tcp
+        app_protocol: http
+        mode: host
+    networks:
+      - public
+      - app
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --quiet --spider http://127.0.0.1/healthz
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 30s
+
+configs:
+  redis_acl:
+    content: |
+      user default off
+      user root on >kkkcm520 ~* &* +@all
+
+  prometheus_config:
+    content: |
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets:
+                - prometheus:9090
+
+  grafana_datasource:
+    content: |
+      apiVersion: 1
+
+      datasources:
+        - name: Prometheus
+          uid: asa-prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus:9090
+          isDefault: true
+          editable: false
+
+  nginx_default:
+    content: |
+      map $$http_upgrade $$connection_upgrade {
+          default upgrade;
+          '' close;
+      }
+
+      server {
+          listen 80;
+          server_name _;
+          client_max_body_size 20m;
+
+          location = /healthz {
+              access_log off;
+              default_type text/plain;
+              return 200 'ok\n';
+          }
+
+          location /api/ {
+              resolver 127.0.0.11 ipv6=off valid=10s;
+              set $$api_upstream http://api:8000;
+              proxy_pass $$api_upstream;
+              proxy_http_version 1.1;
+              proxy_set_header Host $$host;
+              proxy_set_header X-Real-IP $$remote_addr;
+              proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+              proxy_set_header Upgrade $$http_upgrade;
+              proxy_set_header Connection $$connection_upgrade;
+              proxy_connect_timeout 5s;
+              proxy_read_timeout 300s;
+              proxy_send_timeout 300s;
+          }
+
+          location / {
+              resolver 127.0.0.11 ipv6=off valid=10s;
+              set $$web_upstream http://web:80;
+              proxy_pass $$web_upstream;
+              proxy_http_version 1.1;
+              proxy_set_header Host $$host;
+              proxy_set_header X-Real-IP $$remote_addr;
+              proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+              proxy_connect_timeout 5s;
+              proxy_read_timeout 60s;
+              proxy_send_timeout 60s;
+          }
+      }
+
+networks:
+  public:
+    name: asa-public
+    driver: bridge
+
+  app:
+    name: asa-app
+    driver: bridge
+    internal: true
+
+volumes:
+  postgres_data:
+    name: asa-postgres-data
+
+  redis_data:
+    name: asa-redis-data
+
+  prometheus_data:
+    name: asa-prometheus-data
+
+  grafana_data:
+    name: asa-grafana-data

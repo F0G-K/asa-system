@@ -1,4 +1,4 @@
-本文档约 15000 字，阅读约 30 分钟。
+本文档约 22000 字，阅读约 44 分钟。
 
 # 自动化安全评估系统 API 接口文档
 
@@ -27,6 +27,7 @@
 | 项目管理 | 6 | 创建、列表、详情、启动、停止、删除 |
 | 过程监控 | 5 | 阶段、角色任务、消息、日志、资源 |
 | 评估结果 | 6 | 漏洞列表与详情、攻击路径列表与详情、报告预览与下载 |
+| 知识库 | 7 | 知识条目管理、语义检索、项目检索历史 |
 | 实时通信 | 1 | 项目事件 WebSocket |
 
 PRD 未逐项列出但为页面闭环所必需的接口如下：
@@ -39,6 +40,7 @@ PRD 未逐项列出但为页面闭环所必需的接口如下：
 | `GET /api/v1/projects/{project_id}/messages` | 支持角色消息历史回放和断线数据补偿 |
 | 漏洞与攻击路径详情接口 | 落实详情页展示要求 |
 | 报告下载接口 | 落实报告文件下载要求 |
+| 知识库管理接口（CRUD）、语义检索、检索历史 | 落实数据库 `knowledge_entries` 和 `knowledge_retrievals` 表的外部访问入口 |
 
 内部执行网关、Celery 任务、模型适配器和 Event Relay 不属于浏览器可访问的外部 API，不在本文档中定义。
 
@@ -308,6 +310,76 @@ Set-Cookie: asa_csrf=<csrf-token>; Path=/; Secure; SameSite=Lax
 | 报告状态 | `pending`、`generating`、`ready`、`failed` |
 | 用户状态 | `active`、`disabled` |
 | 容器状态 | `pending`、`starting`、`running`、`stopping`、`stopped`、`destroyed`、`failed` |
+| 知识类型 | `vulnerability_pattern`、`security_standard`、`remediation_advice`、`historical_assessment` |
+| 条目状态 | `active`、`disabled`、`draft` |
+| 条目来源 | `manual`、`external_import`、`auto_curated` |
+| 检索类型 | `stage_pre`、`role_pre`、`tool_triggered` |
+
+### 3.5 KnowledgeEntrySummary
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `id` | string(uuid) | 是 | 无 | 知识条目标识 |
+| `title` | string | 是 | 无 | 条目标题 |
+| `knowledge_type` | string | 是 | 无 | `vulnerability_pattern`、`security_standard`、`remediation_advice` 或 `historical_assessment` |
+| `language` | string 或 null | 是 | `null` | 适用编程语言，多值以逗号分隔 |
+| `framework` | string 或 null | 是 | `null` | 适用框架，多值以逗号分隔 |
+| `risk_level` | string 或 null | 是 | `null` | 关联风险等级 |
+| `tags` | array[string] | 是 | `[]` | 检索标签 |
+| `entry_status` | string | 是 | 无 | `active`、`disabled` 或 `draft` |
+| `source_type` | string | 是 | 无 | `manual`、`external_import` 或 `auto_curated` |
+| `version` | integer | 是 | 无 | 当前版本号 |
+| `created_at` | string(date-time) | 是 | 无 | 创建时间 |
+| `updated_at` | string(date-time) | 是 | 无 | 更新时间 |
+
+### 3.6 KnowledgeEntryDetail
+
+`KnowledgeEntryDetail` 包含 `KnowledgeEntrySummary` 的全部字段，并增加：
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `content_text` | string | 是 | 无 | 条目正文（Markdown） |
+| `source_url` | string 或 null | 是 | `null` | 外部来源链接 |
+| `created_by` | string(uuid) 或 null | 是 | `null` | 创建者标识 |
+| `reviewed_by` | string(uuid) 或 null | 是 | `null` | 审核者标识 |
+| `reviewed_at` | string(date-time) 或 null | 是 | `null` | 审核时间 |
+
+### 3.7 KnowledgeSearchResult
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `entry_id` | string(uuid) | 是 | 无 | 匹配条目标识 |
+| `title` | string | 是 | 无 | 条目标题 |
+| `knowledge_type` | string | 是 | 无 | 知识类型 |
+| `content_text` | string | 是 | 无 | 条目正文片段 |
+| `risk_level` | string 或 null | 是 | `null` | 关联风险等级 |
+| `tags` | array[string] | 是 | `[]` | 检索标签 |
+| `similarity` | number | 是 | 无 | 语义相似度，范围 [0, 1] |
+
+### 3.8 KnowledgeRetrievalRecord
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `id` | integer(int64) | 是 | 无 | 检索记录游标 |
+| `stage_id` | string(uuid) 或 null | 是 | `null` | 所属阶段 |
+| `worker_task_id` | string(uuid) 或 null | 是 | `null` | 触发检索的角色任务 |
+| `retrieval_type` | string | 是 | 无 | `stage_pre`、`role_pre` 或 `tool_triggered` |
+| `query_text` | string | 是 | 无 | 脱敏后的检索查询文本 |
+| `filter_language` | string 或 null | 是 | `null` | 检索时的语言过滤条件 |
+| `filter_knowledge_types` | array[string] 或 null | 是 | `null` | 检索时的子库过滤条件 |
+| `top_k` | integer | 是 | 无 | 请求的召回数量 |
+| `retrieved_entries` | array[object] | 是 | 无 | 召回的条目 ID 与相似度列表 |
+| `top_score` | number 或 null | 是 | `null` | 最高相似度 |
+| `avg_score` | number 或 null | 是 | `null` | 平均相似度 |
+| `retrieval_duration_ms` | integer 或 null | 是 | `null` | 检索耗时（毫秒） |
+| `created_at` | string(date-time) | 是 | 无 | 检索时间 |
+
+`retrieved_entries` 的元素结构：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | :---: | --- |
+| `entry_id` | string(uuid) | 是 | 知识条目标识 |
+| `score` | number | 是 | 相似度分数，范围 [0, 1] |
 
 ## 4. 系统与认证接口
 
@@ -2150,9 +2222,561 @@ X-Request-ID: 49ca363a-8ad1-4b91-a31c-437e031276fd
 - 文件名必须经过安全规范化，禁止响应头注入。
 - 服务端读取的是受控逻辑键，不接受客户端传入文件路径。
 
-## 8. WebSocket 实时接口
+## 8. 知识库接口
 
-### 8.1 订阅项目实时事件
+### 8.1 查询知识条目列表
+
+接口名称：查询知识条目列表。
+
+用途：分页查询知识条目摘要，支持按子库、状态、风险等级、语言和标签筛选。
+
+請求方式：`GET`
+
+URL：`/api/v1/knowledge/entries`
+
+认证方式：Cookie 会话认证，仅 `admin` 可查看 `draft` 和 `disabled` 条目；普通用户仅返回 `active` 条目。
+
+请求头：使用受保护查询接口的通用请求头。
+
+路径参数：无。
+
+查询参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `page` | integer | 否 | `1` | 页码 |
+| `page_size` | integer | 否 | `20` | 每页 1 至 100 条 |
+| `knowledge_type` | string | 否 | 无 | 按子库筛选 |
+| `entry_status` | string | 否 | 无 | 管理员按状态筛选 |
+| `risk_level` | string | 否 | 无 | 按风险等级筛选 |
+| `language` | string | 否 | 无 | 按编程语言模糊匹配 |
+| `keyword` | string | 否 | 无 | 按标题或正文模糊匹配 |
+| `tags` | array[string] | 否 | 无 | 可重复参数，按标签精确匹配 |
+| `sort` | string | 否 | `updated_at:desc` | `created_at:asc`、`created_at:desc`、`updated_at:asc` 或 `updated_at:desc` |
+
+请求体：无。
+
+成功响应：`200 OK`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRIES_OK",
+  "message": "查询成功",
+  "data": {
+    "items": [
+      {
+        "id": "2f8b1a4c-6e3d-4f9a-b1c7-8d2e5f0a3b6c",
+        "title": "SQL 注入检测模式",
+        "knowledge_type": "vulnerability_pattern",
+        "language": "python,java,go",
+        "framework": null,
+        "risk_level": "critical",
+        "tags": ["sqli", "injection", "input-validation"],
+        "entry_status": "active",
+        "source_type": "manual",
+        "version": 3,
+        "created_at": "2026-06-15T02:10:00Z",
+        "updated_at": "2026-07-20T09:30:00Z"
+      }
+    ],
+    "page": 1,
+    "page_size": 20,
+    "total": 42,
+    "has_next": true
+  },
+  "request_id": "d7f8e2a1-4b6c-4d9e-8f3a-1c5b2e7f9d4a"
+}
+```
+
+失败响应：`403 Forbidden`
+
+```json
+{
+  "code": "ADMIN_REQUIRED",
+  "message": "仅管理员可按草稿或禁用状态筛选",
+  "data": null,
+  "request_id": "d7f8e2a1-4b6c-4d9e-8f3a-1c5b2e7f9d4a"
+}
+```
+
+状态码与错误码：成功为 `200 KNOWLEDGE_ENTRIES_OK`；未登录为 `401 AUTH_REQUIRED`、`SESSION_EXPIRED`；权限不足为 `403 ADMIN_REQUIRED`；筛选值无效为 `422 VALIDATION_ERROR`。
+
+注意事项：普通用户查询时服务端强制附加 `entry_status = 'active'` 条件，忽略客户端传入的 `entry_status`。
+
+### 8.2 创建知识条目
+
+接口名称：创建知识条目。
+
+用途：管理员手动录入或导入安全知识条目，创建后初始状态为 `draft`。
+
+请求方式：`POST`
+
+URL：`/api/v1/knowledge/entries`
+
+认证方式：Cookie 会话认证，仅 `admin`。
+
+请求头：`Content-Type`、`Cookie` 和 `X-CSRF-Token` 必填。
+
+路径参数：无。
+
+查询参数：无。
+
+请求体：
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `title` | string | 是 | 无 | 1 至 255 个字符 |
+| `content_text` | string | 是 | 无 | Markdown 正文，非空 |
+| `knowledge_type` | string | 是 | 无 | 必须为四种子库之一 |
+| `language` | string 或 null | 否 | `null` | 适用编程语言，多值以逗号分隔 |
+| `framework` | string 或 null | 否 | `null` | 适用框架，多值以逗号分隔 |
+| `risk_level` | string 或 null | 否 | `null` | 关联风险等级 |
+| `tags` | array[string] | 否 | `[]` | 检索标签，不得重复 |
+| `source_type` | string | 否 | `manual` | `manual` 或 `external_import` |
+| `source_url` | string 或 null | 否 | `null` | 外部来源 URL |
+
+请求示例：
+
+```json
+{
+  "title": "SQL 注入检测模式",
+  "content_text": "# SQL 注入检测\n\n## 常见模式\n...",
+  "knowledge_type": "vulnerability_pattern",
+  "language": "python,java,go",
+  "risk_level": "critical",
+  "tags": ["sqli", "injection", "input-validation"],
+  "source_type": "manual"
+}
+```
+
+成功响应：`201 Created`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRY_CREATED",
+  "message": "知识条目创建成功",
+  "data": {
+    "id": "2f8b1a4c-6e3d-4f9a-b1c7-8d2e5f0a3b6c",
+    "title": "SQL 注入检测模式",
+    "knowledge_type": "vulnerability_pattern",
+    "language": "python,java,go",
+    "framework": null,
+    "risk_level": "critical",
+    "tags": ["sqli", "injection", "input-validation"],
+    "entry_status": "draft",
+    "source_type": "manual",
+    "version": 1,
+    "content_text": "# SQL 注入检测\n\n## 常见模式\n...",
+    "source_url": null,
+    "created_by": "095e6a11-52f0-424a-90a1-0d81bd8cc1d9",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "created_at": "2026-07-24T10:00:00Z",
+    "updated_at": "2026-07-24T10:00:00Z"
+  },
+  "request_id": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+}
+```
+
+失败响应：`422 Unprocessable Entity`
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "知识类型取值无效",
+  "data": {
+    "field": "body.knowledge_type"
+  },
+  "request_id": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+}
+```
+
+状态码与错误码：成功为 `201 KNOWLEDGE_ENTRY_CREATED`；权限不足为 `403 ADMIN_REQUIRED`、`CSRF_INVALID`；参数无效为 `422 VALIDATION_ERROR`。
+
+注意事项：条目创建后为 `draft` 状态，尚未生成 Embedding 向量。管理员审核通过后将 `entry_status` 更新为 `active`，由异步任务生成向量后条目才参与语义检索。
+
+### 8.3 查询知识条目详情
+
+接口名称：查询知识条目详情。
+
+用途：返回条目完整内容、审核信息和版本号。
+
+请求方式：`GET`
+
+URL：`/api/v1/knowledge/entries/{entry_id}`
+
+认证方式：Cookie 会话认证；`draft` 和 `disabled` 条目仅 `admin` 可见。
+
+请求头：使用受保护查询接口的通用请求头。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `entry_id` | string(uuid) | 是 | 无 | 知识条目标识 |
+
+查询参数：无。
+
+请求体：无。
+
+成功响应：`200 OK`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRY_DETAIL_OK",
+  "message": "查询成功",
+  "data": {
+    "id": "2f8b1a4c-6e3d-4f9a-b1c7-8d2e5f0a3b6c",
+    "title": "SQL 注入检测模式",
+    "knowledge_type": "vulnerability_pattern",
+    "language": "python,java,go",
+    "framework": null,
+    "risk_level": "critical",
+    "tags": ["sqli", "injection", "input-validation"],
+    "entry_status": "active",
+    "source_type": "manual",
+    "version": 3,
+    "content_text": "# SQL 注入检测\n\n## 常见模式\n...",
+    "source_url": null,
+    "created_by": "095e6a11-52f0-424a-90a1-0d81bd8cc1d9",
+    "reviewed_by": "8f3b2c1a-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+    "reviewed_at": "2026-07-20T09:15:00Z",
+    "created_at": "2026-06-15T02:10:00Z",
+    "updated_at": "2026-07-20T09:30:00Z"
+  },
+  "request_id": "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f"
+}
+```
+
+失败响应：`404 Not Found`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRY_NOT_FOUND",
+  "message": "知识条目不存在",
+  "data": null,
+  "request_id": "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f"
+}
+```
+
+状态码与错误码：成功为 `200 KNOWLEDGE_ENTRY_DETAIL_OK`；未登录为 `401 AUTH_REQUIRED`；权限不足为 `403 ADMIN_REQUIRED`（访问非公开条目）；不存在为 `404 KNOWLEDGE_ENTRY_NOT_FOUND`；UUID 无效为 `422 VALIDATION_ERROR`。
+
+注意事项：`content_text` 按原始 Markdown 返回，前端渲染前须执行安全转义。
+
+### 8.4 更新知识条目
+
+接口名称：更新知识条目。
+
+用途：管理员编辑条目内容、标签和状态，每次更新递增版本号。
+
+请求方式：`PUT`
+
+URL：`/api/v1/knowledge/entries/{entry_id}`
+
+认证方式：Cookie 会话认证，仅 `admin`。
+
+请求头：`Content-Type`、`Cookie` 和 `X-CSRF-Token` 必填。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `entry_id` | string(uuid) | 是 | 无 | 知识条目标识 |
+
+查询参数：无。
+
+请求体：
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `title` | string | 否 | 不传不更新 | 1 至 255 个字符 |
+| `content_text` | string | 否 | 不传不更新 | Markdown 正文 |
+| `knowledge_type` | string | 否 | 不传不更新 | 子库分类 |
+| `language` | string 或 null | 否 | 不传不更新 | 编程语言，`null` 表示清空 |
+| `framework` | string 或 null | 否 | 不传不更新 | 框架，`null` 表示清空 |
+| `risk_level` | string 或 null | 否 | 不传不更新 | 风险等级，`null` 表示清空 |
+| `tags` | array[string] | 否 | 不传不更新 | 检索标签 |
+| `entry_status` | string | 否 | 不传不更新 | 审核操作时可设为 `active` 或 `disabled` |
+| `source_url` | string 或 null | 否 | 不传不更新 | 外部来源链接 |
+| `expected_version` | integer | 是 | 无 | 当前已知版本，用于乐观锁 |
+
+请求示例：
+
+```json
+{
+  "title": "SQL 注入检测模式 v2",
+  "tags": ["sqli", "injection", "input-validation", "database"],
+  "entry_status": "active",
+  "expected_version": 1
+}
+```
+
+成功响应：`200 OK`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRY_UPDATED",
+  "message": "知识条目已更新",
+  "data": {
+    "id": "2f8b1a4c-6e3d-4f9a-b1c7-8d2e5f0a3b6c",
+    "version": 2,
+    "title": "SQL 注入检测模式 v2",
+    "entry_status": "active",
+    "updated_at": "2026-07-24T10:30:00Z"
+  },
+  "request_id": "d5e6f7a8-9b0c-1d2e-3f4a-5b6c7d8e9f0a"
+}
+```
+
+失败响应：`409 Conflict`
+
+```json
+{
+  "code": "ENTRY_VERSION_CONFLICT",
+  "message": "条目已被其他管理员更新，请刷新后重试",
+  "data": {
+    "expected_version": 1,
+    "current_version": 2
+  },
+  "request_id": "d5e6f7a8-9b0c-1d2e-3f4a-5b6c7d8e9f0a"
+}
+```
+
+状态码与错误码：成功为 `200 KNOWLEDGE_ENTRY_UPDATED`；权限不足为 `403 ADMIN_REQUIRED`、`CSRF_INVALID`；不存在为 `404 KNOWLEDGE_ENTRY_NOT_FOUND`；版本冲突为 `409 ENTRY_VERSION_CONFLICT`；参数无效为 `422 VALIDATION_ERROR`。
+
+注意事项：
+- 更新时 `version` 自动递增。
+- `entry_status` 从 `draft` 或 `disabled` 变更为 `active` 时触发异步向量生成任务。
+- `entry_status` 变更为 `disabled` 时条目立即从检索结果中排除，但保留已有向量数据。
+- `content_text` 或 `knowledge_type` 变更且条目为 `active` 时需重新生成向量。
+
+### 8.5 删除知识条目
+
+接口名称：删除知识条目。
+
+用途：管理员物理删除条目及其向量数据。
+
+请求方式：`DELETE`
+
+URL：`/api/v1/knowledge/entries/{entry_id}`
+
+认证方式：Cookie 会话认证，仅 `admin`。
+
+请求头：`Cookie` 和 `X-CSRF-Token` 必填。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `entry_id` | string(uuid) | 是 | 无 | 知识条目标识 |
+
+查询参数：无。
+
+请求体：无。
+
+成功响应：`200 OK`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRY_DELETED",
+  "message": "知识条目已删除",
+  "data": null,
+  "request_id": "e7f8a9b0-1c2d-3e4f-5a6b-7c8d9e0f1a2b"
+}
+```
+
+失败响应：`404 Not Found`
+
+```json
+{
+  "code": "KNOWLEDGE_ENTRY_NOT_FOUND",
+  "message": "知识条目不存在",
+  "data": null,
+  "request_id": "e7f8a9b0-1c2d-3e4f-5a6b-7c8d9e0f1a2b"
+}
+```
+
+状态码与错误码：成功为 `200 KNOWLEDGE_ENTRY_DELETED`；权限不足为 `403 ADMIN_REQUIRED`、`CSRF_INVALID`；不存在为 `404 KNOWLEDGE_ENTRY_NOT_FOUND`；UUID 无效为 `422 VALIDATION_ERROR`。
+
+注意事项：删除不可恢复，前端须二次确认。已有检索历史中的 `retrieved_entries` 仍保留该条目 ID 和分数，展示时前端需处理已删除条目的缺省状态。
+
+### 8.6 语义检索知识库
+
+接口名称：语义检索知识库。
+
+用途：以自然语言查询匹配知识库条目，返回按相似度降序的召回结果。供评估引擎 RAG 流程和管理员手动验证使用。
+
+请求方式：`POST`
+
+URL：`/api/v1/knowledge/search`
+
+认证方式：Cookie 会话认证，`user` 和 `admin` 均可调用。
+
+请求头：`Content-Type`、`Cookie` 和 `X-CSRF-Token` 必填。
+
+路径参数：无。
+
+查询参数：无。
+
+请求体：
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `query_text` | string | 是 | 无 | 检索查询文本，1 至 4096 个字符 |
+| `top_k` | integer | 否 | `5` | 召回数量，1 至 50 |
+| `knowledge_types` | array[string] | 否 | 全部子库 | 限定子库范围 |
+| `language` | string | 否 | 无 | 限定编程语言 |
+| `risk_level` | string | 否 | 无 | 限定风险等级 |
+| `min_similarity` | number | 否 | `0.7` | 最低相似度阈值，范围 [0, 1] |
+
+请求示例：
+
+```json
+{
+  "query_text": "如何检测代码中的 SQL 注入漏洞",
+  "top_k": 5,
+  "knowledge_types": ["vulnerability_pattern"],
+  "min_similarity": 0.65
+}
+```
+
+成功响应：`200 OK`
+
+```json
+{
+  "code": "KNOWLEDGE_SEARCH_OK",
+  "message": "检索完成",
+  "data": {
+    "items": [
+      {
+        "entry_id": "2f8b1a4c-6e3d-4f9a-b1c7-8d2e5f0a3b6c",
+        "title": "SQL 注入检测模式",
+        "knowledge_type": "vulnerability_pattern",
+        "content_text": "## 常见模式\n### 字符串拼接\n使用 `+` 或 `format()` 拼接 SQL 语句...",
+        "risk_level": "critical",
+        "tags": ["sqli", "injection", "input-validation"],
+        "similarity": 0.9341
+      }
+    ],
+    "query_text": "如何检测代码中的 SQL 注入漏洞",
+    "searched_knowledge_types": ["vulnerability_pattern"],
+    "total_scanned": 18,
+    "total_matched": 3
+  },
+  "request_id": "f9a0b1c2-3d4e-5f6a-7b8c-9d0e1f2a3b4c"
+}
+```
+
+失败响应：`422 Unprocessable Entity`
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "查询文本不能为空",
+  "data": {
+    "field": "body.query_text"
+  },
+  "request_id": "f9a0b1c2-3d4e-5f6a-7b8c-9d0e1f2a3b4c"
+}
+```
+
+状态码与错误码：成功为 `200 KNOWLEDGE_SEARCH_OK`（允许空结果）；未登录为 `401 AUTH_REQUIRED`；参数无效为 `422 VALIDATION_ERROR`；向量索引未就绪为 `503 DEPENDENCY_UNAVAILABLE`。
+
+注意事项：
+- 仅检索 `entry_status = 'active'` 且已生成向量的条目。
+- `content_text` 返回与查询最相关的片段而非全文，前端用于检索结果预览。
+- 接口不写入 `knowledge_retrievals` 记录；评估引擎内部 RAG 调用通过内部通道写入，不走此外部接口。
+- 最小相似度阈值过低可能导致大量低质量结果，生产环境应设合理默认值。
+
+### 8.7 查询项目知识检索历史
+
+接口名称：查询项目知识检索历史。
+
+用途：按时间倒序返回项目中 RAG 检索的记录，供评估复盘和检索质量分析。
+
+请求方式：`GET`
+
+URL：`/api/v1/projects/{project_id}/knowledge/retrievals`
+
+认证方式：Cookie 会话认证和项目访问权限。
+
+请求头：使用受保护查询接口的通用请求头。
+
+路径参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `project_id` | string(uuid) | 是 | 无 | 项目标识 |
+
+查询参数：
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | :---: | --- | --- |
+| `page` | integer | 否 | `1` | 页码 |
+| `page_size` | integer | 否 | `20` | 每页 1 至 100 条 |
+| `stage_id` | string(uuid) | 否 | 无 | 按阶段筛选 |
+| `worker_task_id` | string(uuid) | 否 | 无 | 按角色任务筛选 |
+| `retrieval_type` | string | 否 | 无 | `stage_pre`、`role_pre` 或 `tool_triggered` |
+| `sort` | string | 否 | `created_at:desc` | `created_at:asc` 或 `created_at:desc` |
+
+请求体：无。
+
+成功响应：`200 OK`
+
+```json
+{
+  "code": "KNOWLEDGE_RETRIEVALS_OK",
+  "message": "查询成功",
+  "data": {
+    "items": [
+      {
+        "id": 128,
+        "stage_id": "179a46a8-512d-4f0b-b563-2db1297876c0",
+        "worker_task_id": "ff7d788f-b9b1-42a1-8fa1-6d15b932342c",
+        "retrieval_type": "role_pre",
+        "query_text": "常见 SQL 注入模式和检测方法",
+        "filter_language": "python",
+        "filter_knowledge_types": ["vulnerability_pattern"],
+        "top_k": 5,
+        "retrieved_entries": [
+          {"entry_id": "2f8b1a4c-6e3d-4f9a-b1c7-8d2e5f0a3b6c", "score": 0.9341},
+          {"entry_id": "5c3d7e8f-1a2b-4c5d-9e6f-7a8b0c1d2e3f", "score": 0.8215}
+        ],
+        "top_score": 0.9341,
+        "avg_score": 0.8778,
+        "retrieval_duration_ms": 145,
+        "created_at": "2026-07-24T09:02:19Z"
+      }
+    ],
+    "page": 1,
+    "page_size": 20,
+    "total": 6,
+    "has_next": false
+  },
+  "request_id": "b1c2d3e4-5f6a-7b8c-9d0e-1f2a3b4c5d6e"
+}
+```
+
+失败响应：`404 Not Found`
+
+```json
+{
+  "code": "PROJECT_NOT_FOUND",
+  "message": "项目不存在",
+  "data": null,
+  "request_id": "b1c2d3e4-5f6a-7b8c-9d0e-1f2a3b4c5d6e"
+}
+```
+
+状态码与错误码：成功为 `200 KNOWLEDGE_RETRIEVALS_OK`（允许空列表）；权限不足为 `403 PROJECT_ACCESS_DENIED`；项目不存在为 `404 PROJECT_NOT_FOUND`；参数无效为 `422 VALIDATION_ERROR`。
+
+注意事项：
+- `retrieved_entries` 中引用的知识条目可能在检索后被删除，前端需兼容 `entry_id` 无对应条目的情况。
+- 检索记录仅在项目生命周期内保留，删除项目时级联清理。
+
+## 9. WebSocket 实时接口
+
+### 9.1 订阅项目实时事件
 
 接口名称：订阅项目实时事件。
 
@@ -2282,9 +2906,9 @@ URL：`/api/v1/projects/{project_id}/stream`
 - 服务端应设置心跳、空闲超时、单连接发送缓冲和慢客户端断开策略。
 - 日志高峰期间允许服务端合并资源事件，但不得改变项目状态和漏洞事件的语义。
 
-## 9. 业务错误码汇总
+## 10. 业务错误码汇总
 
-### 9.1 系统与认证
+### 10.1 系统与认证
 
 | 错误码 | HTTP 状态 | 说明 |
 | --- | ---: | --- |
@@ -2295,7 +2919,7 @@ URL：`/api/v1/projects/{project_id}/stream`
 | `SYSTEM_CONFIG_NOT_FOUND` | 404 | 尚无生效配置 |
 | `CONFIG_VERSION_CONFLICT` | 409 | 配置乐观锁版本冲突 |
 
-### 9.2 项目
+### 10.2 项目
 
 | 错误码 | HTTP 状态 | 说明 |
 | --- | ---: | --- |
@@ -2312,7 +2936,7 @@ URL：`/api/v1/projects/{project_id}/stream`
 | `SOURCE_INACCESSIBLE` | 409 | 启动时源码不可访问 |
 | `ENVIRONMENT_TYPE_DISABLED` | 409 | 隔离环境类型未启用 |
 
-### 9.3 结果与文件
+### 10.3 结果与文件
 
 | 错误码 | HTTP 状态 | 说明 |
 | --- | ---: | --- |
@@ -2323,9 +2947,16 @@ URL：`/api/v1/projects/{project_id}/stream`
 | `REPORT_FILE_NOT_FOUND` | 404 | 报告元数据存在但文件不存在 |
 | `REPORT_INTEGRITY_ERROR` | 500 | 报告文件摘要校验失败 |
 
-## 10. 安全与实现注意事项
+### 10.4 知识库
 
-### 10.1 输入校验
+| 错误码 | HTTP 状态 | 说明 |
+| --- | ---: | --- |
+| `KNOWLEDGE_ENTRY_NOT_FOUND` | 404 | 知识条目不存在 |
+| `ENTRY_VERSION_CONFLICT` | 409 | 条目乐观锁版本冲突 |
+
+## 11. 安全与实现注意事项
+
+### 11.1 输入校验
 
 - 所有路径参数 UUID 必须在进入数据访问层前校验。
 - 所有枚举值使用本文档规定的闭集，未知值返回 `422 VALIDATION_ERROR`。
@@ -2334,20 +2965,20 @@ URL：`/api/v1/projects/{project_id}/stream`
 - 日志、消息、证据、报告和配置 JSON 在入库前执行字段白名单、长度限制和敏感信息过滤。
 - 模型自由文本不得直接拼接为 Shell 命令。
 
-### 10.2 输出安全
+### 11.2 输出安全
 
 - 错误响应不得包含 Python 堆栈、SQL、宿主机绝对路径、容器 Socket、密钥或完整内部异常。
 - 报告 HTML 必须经过允许列表清理；Markdown、日志、证据和验证代码默认按不可信文本处理。
 - 下载文件名执行字符白名单处理，并设置安全的 `Content-Disposition`。
 - 所有项目子资源查询必须同时校验资源 `project_id` 和当前用户权限。
 
-### 10.3 缓存
+### 11.3 缓存
 
 - 认证、项目详情、过程状态和结果接口默认返回 `Cache-Control: no-store`。
 - 报告下载可以使用与 `content_sha256` 对应的强 ETag，但命中缓存前仍需完成身份和项目权限校验。
 - 浏览器或代理不得缓存登录与初始化请求体。
 
-### 10.4 速率限制
+### 11.4 速率限制
 
 登录、初始化、启动、停止、删除、配置更新和 WebSocket 重连必须限流。触发限制时返回：
 
@@ -2369,23 +3000,23 @@ Retry-After: 30
 
 具体阈值由部署和安全评审确定，不在接口契约中写死。
 
-### 10.5 一致性与审计
+### 11.5 一致性与审计
 
 - 项目、阶段、任务和报告状态变更与 `domain_events` 写入必须位于同一数据库事务。
 - WebSocket 或 Redis 投递失败不得回滚已提交业务状态。
 - 初始化、登录成功与连续失败、越权、启动、停止、删除、配置更新和管理员访问敏感项目均写入脱敏审计日志。
 - `request_id`、`project_id`、`stage_id` 和 `worker_task_id` 用于跨 API、任务、日志和事件关联。
 
-## 11. 前端调用顺序
+## 12. 前端调用顺序
 
-### 11.1 首次初始化
+### 12.1 首次初始化
 
 1. 调用 `GET /api/v1/system/status`。
 2. 当 `initialized=false` 时调用 `POST /api/v1/system/init`。
 3. 初始化成功后调用 `POST /api/v1/system/login`。
 4. 登录成功后读取 `GET /api/v1/system/config` 或项目列表。
 
-### 11.2 创建并启动项目
+### 12.2 创建并启动项目
 
 1. 管理员配置可用环境类型。
 2. 用户调用 `POST /api/v1/projects` 创建项目。
@@ -2394,14 +3025,14 @@ Retry-After: 30
 5. 建立 WebSocket，查询项目详情和阶段状态作为初始快照。
 6. 使用事件增量更新页面；连接中断时使用 REST 接口补偿。
 
-### 11.3 停止与删除
+### 12.3 停止与删除
 
 1. 对 `running` 项目调用停止接口，并保留原幂等键用于网络重试。
 2. 等待项目通过 WebSocket 或详情接口收敛为 `stopped`。
 3. 用户二次确认项目名称。
 4. 使用新的幂等键调用删除接口。
 
-## 12. 待确认事项
+## 13. 待确认事项
 
 - 用户管理接口不在当前 MVP 需求中；除初始化管理员外，普通用户账户的创建、禁用和密码重置流程待确认。
 - 私有仓库凭证托管方式和凭证引用字段尚未定义，本接口禁止直接接收或保存明文凭证。
