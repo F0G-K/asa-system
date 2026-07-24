@@ -5,13 +5,17 @@ import {
   KNOWLEDGE_TYPE_MAP,
   ENTRY_STATUS_MAP,
   RISK_LEVEL_MAP,
+  KNOWLEDGE_SOURCE_TYPE_MAP,
   type StatusDisplay,
   type KnowledgeType,
   type EntryStatus,
+  type KnowledgeSourceType,
+  type RiskLevel,
 } from '@asa/contracts'
 import type {
   KnowledgeEntrySummary,
   KnowledgeEntryDetail,
+  KnowledgeSearchData,
 } from '@asa/contracts'
 import {
   listKnowledgeEntries,
@@ -58,6 +62,7 @@ const filters = reactive({
   language: '' as string,
   entry_status: '' as string,
   keyword: '' as string,
+  tags_filter: '' as string,
   sort: 'updated_at:desc' as string,
 })
 
@@ -66,13 +71,16 @@ const searchQuery = ref('')
 const searchResults = ref<SearchResultItem[]>([])
 const searchLoading = ref(false)
 const searchPerformed = ref(false)
+const searchMeta = ref<Pick<KnowledgeSearchData, 'total_scanned' | 'total_matched' | 'searched_knowledge_types'> | null>(null)
 
 // Modal
 const modalVisible = ref(false)
 const modalTitle = ref('新建知识条目')
 const isEditing = ref(false)
 const editingId = ref<string | null>(null)
+const editVersion = ref(0)
 const saving = ref(false)
+const detailLoading = ref(false)
 
 const form = reactive({
   title: '',
@@ -82,6 +90,7 @@ const form = reactive({
   language: '',
   framework: '',
   tags: '',
+  source_type: 'manual' as KnowledgeSourceType,
   source_url: '',
 })
 
@@ -117,7 +126,8 @@ const hasActiveFilters = computed(
     filters.risk_level !== '' ||
     filters.language !== '' ||
     filters.entry_status !== '' ||
-    filters.keyword.trim() !== '',
+    filters.keyword.trim() !== '' ||
+    filters.tags_filter.trim() !== '',
 )
 
 // ===== API Calls =====
@@ -136,6 +146,12 @@ async function fetchEntries() {
     if (filters.language) params.language = filters.language
     if (filters.entry_status) params.entry_status = filters.entry_status
     if (filters.keyword.trim()) params.keyword = filters.keyword.trim()
+    if (filters.tags_filter.trim()) {
+      params.tags = filters.tags_filter
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    }
 
     const result = await listKnowledgeEntries(params)
     entries.value = result.items
@@ -155,14 +171,27 @@ async function doSearch() {
 
   searchLoading.value = true
   searchPerformed.value = true
+  searchMeta.value = null
 
   try {
     const result = await semanticSearch({
       query_text: q,
       top_k: 8,
-      min_similarity: 0.3,
+      min_similarity: 0.7,
+      knowledge_types: filters.knowledge_type
+        ? [filters.knowledge_type as KnowledgeType]
+        : undefined,
+      language: filters.language || undefined,
+      risk_level: filters.risk_level
+        ? (filters.risk_level as RiskLevel)
+        : undefined,
     })
     searchResults.value = result.items
+    searchMeta.value = {
+      total_scanned: result.total_scanned,
+      total_matched: result.total_matched,
+      searched_knowledge_types: result.searched_knowledge_types,
+    }
   } catch (e) {
     if (e instanceof ApiError) {
       error.value = e
@@ -177,12 +206,15 @@ function clearSearch() {
   searchQuery.value = ''
   searchResults.value = []
   searchPerformed.value = false
+  searchMeta.value = null
 }
 
 // ===== CRUD =====
 function openCreateModal() {
   isEditing.value = false
   editingId.value = null
+  editVersion.value = 0
+  detailLoading.value = false
   modalTitle.value = '新建知识条目'
   form.title = ''
   form.content_text = ''
@@ -191,6 +223,7 @@ function openCreateModal() {
   form.language = ''
   form.framework = ''
   form.tags = ''
+  form.source_type = 'manual'
   form.source_url = ''
   modalVisible.value = true
 }
@@ -198,7 +231,10 @@ function openCreateModal() {
 function openEditModal(entry: KnowledgeEntrySummary) {
   isEditing.value = true
   editingId.value = entry.id
+  editVersion.value = entry.version
+  detailLoading.value = true
   modalTitle.value = '编辑知识条目'
+  // Pre-fill from summary; content_text/source_url loaded async
   form.title = entry.title
   form.content_text = ''
   form.knowledge_type = entry.knowledge_type
@@ -206,19 +242,24 @@ function openEditModal(entry: KnowledgeEntrySummary) {
   form.language = entry.language ?? ''
   form.framework = entry.framework ?? ''
   form.tags = (entry.tags ?? []).join(', ')
+  form.source_type = (entry.source_type as KnowledgeSourceType) ?? 'manual'
   form.source_url = ''
-  // Fetch full detail for content_text
-  fetchEntryDetail(entry.id)
   modalVisible.value = true
+  // Fetch full detail for content_text and source_url
+  fetchEntryDetail(entry.id)
 }
 
 async function fetchEntryDetail(id: string) {
+  detailLoading.value = true
   try {
     const detail = await getKnowledgeEntryDetail(id)
     form.content_text = detail.content_text
     form.source_url = detail.source_url ?? ''
+    editVersion.value = detail.version
   } catch {
-    // Keep existing content
+    // Keep existing content; version stays as summary version
+  } finally {
+    detailLoading.value = false
   }
 }
 
@@ -245,7 +286,7 @@ async function handleSave() {
         risk_level: (form.risk_level || null) as KnowledgeEntryDetail['risk_level'],
         tags,
         source_url: form.source_url.trim() || null,
-        expected_version: 0, // Will be overridden by actual version from detail
+        expected_version: editVersion.value,
       })
       ElMessage.success('条目已更新')
     } else {
@@ -257,6 +298,7 @@ async function handleSave() {
         framework: form.framework.trim() || null,
         risk_level: (form.risk_level || null) as KnowledgeEntryDetail['risk_level'],
         tags,
+        source_type: form.source_type,
         source_url: form.source_url.trim() || null,
       })
       ElMessage.success('条目已创建（草稿状态，待审核）')
@@ -265,7 +307,11 @@ async function handleSave() {
     fetchEntries()
   } catch (e) {
     if (e instanceof ApiError) {
-      ElMessage.error(e.message)
+      if (e.code === 'ENTRY_VERSION_CONFLICT') {
+        ElMessage.warning('条目已被其他管理员更新，请关闭后重新打开编辑')
+      } else {
+        ElMessage.error(e.message)
+      }
     }
   } finally {
     saving.value = false
@@ -339,6 +385,13 @@ function asEntry(row: unknown): KnowledgeEntrySummary {
   return row as KnowledgeEntrySummary
 }
 
+function searchedTypesText(): string {
+  if (!searchMeta.value?.searched_knowledge_types?.length) return ''
+  return searchMeta.value.searched_knowledge_types
+    .map((t) => (KNOWLEDGE_TYPE_MAP as Record<string, StatusDisplay>)[t]?.text ?? t)
+    .join('、')
+}
+
 // ===== Filters =====
 function handleSearch() {
   page.value = 1
@@ -351,6 +404,7 @@ function handleReset() {
   filters.language = ''
   filters.entry_status = ''
   filters.keyword = ''
+  filters.tags_filter = ''
   filters.sort = 'updated_at:desc'
   page.value = 1
   fetchEntries()
@@ -435,7 +489,11 @@ onMounted(() => {
       </template>
       <template v-else>
         <div class="search-results__header">
-          语义检索结果 — query: "{{ searchQuery }}" — 共 {{ searchResults.length }} 条，按相似度降序
+          语义检索结果 — query: "{{ searchQuery }}"
+          — 扫描 {{ searchMeta?.total_scanned ?? 0 }} 条，匹配 {{ searchMeta?.total_matched ?? searchResults.length }} 条，按相似度降序
+          <template v-if="searchMeta?.searched_knowledge_types?.length">
+            （子库：{{ searchedTypesText() }}）
+          </template>
         </div>
         <div
           v-for="item in searchResults"
@@ -569,6 +627,15 @@ onMounted(() => {
             </template>
           </el-input>
 
+          <el-input
+            v-model="filters.tags_filter"
+            placeholder="标签过滤（逗号分隔）"
+            clearable
+            style="width: 200px"
+            @clear="handleSearch"
+            @keyup.enter="handleSearch"
+          />
+
           <el-select
             v-model="filters.sort"
             style="width: 160px"
@@ -663,6 +730,22 @@ onMounted(() => {
                     effect="plain"
                   >
                     {{ lang.trim() }}
+                  </el-tag>
+                </template>
+                <span v-else class="text-muted">—</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="框架" width="120">
+              <template #default="{ row }">
+                <template v-if="row.framework">
+                  <el-tag
+                    v-for="fw in row.framework.split(',')"
+                    :key="fw"
+                    size="small"
+                    effect="plain"
+                  >
+                    {{ fw.trim() }}
                   </el-tag>
                 </template>
                 <span v-else class="text-muted">—</span>
@@ -780,6 +863,9 @@ onMounted(() => {
           </el-button>
         </div>
         <div v-if="searchResults.length > 0" class="inline-results">
+          <div class="search-results__header">
+            扫描 {{ searchMeta?.total_scanned ?? 0 }} 条，匹配 {{ searchMeta?.total_matched ?? searchResults.length }} 条
+          </div>
           <div
             v-for="item in searchResults"
             :key="item.entry_id"
@@ -829,7 +915,7 @@ onMounted(() => {
       :close-on-click-modal="false"
       destroy-on-close
     >
-      <el-form :model="form" label-position="top">
+      <el-form v-loading="isEditing && detailLoading" :model="form" label-position="top">
         <el-form-item label="标题" required>
           <el-input
             v-model="form.title"
@@ -898,12 +984,28 @@ onMounted(() => {
           </el-col>
         </el-row>
 
-        <el-form-item label="标签">
-          <el-input
-            v-model="form.tags"
-            placeholder="逗号分隔，如 sqli, injection, input-validation"
-          />
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="标签">
+              <el-input
+                v-model="form.tags"
+                placeholder="逗号分隔，如 sqli, injection, input-validation"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="来源类型">
+              <el-select v-model="form.source_type" style="width: 100%">
+                <el-option
+                  v-for="(display, key) in KNOWLEDGE_SOURCE_TYPE_MAP"
+                  :key="key"
+                  :label="display.text"
+                  :value="key"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
         <el-form-item label="外部来源链接">
           <el-input
@@ -915,7 +1017,7 @@ onMounted(() => {
 
       <template #footer>
         <el-button @click="modalVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSave">
+        <el-button type="primary" :loading="saving" :disabled="detailLoading" @click="handleSave">
           {{ isEditing ? '保存修改' : '保存为草稿' }}
         </el-button>
       </template>
