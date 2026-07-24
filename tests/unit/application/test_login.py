@@ -5,18 +5,18 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from asa_core.application.commands.login import (
+from backend.application.commands.login import (
     LoginCommand,
     LoginHandler,
     LoginResult,
 )
-from asa_core.domain.auth.entities import User
-from asa_core.domain.auth.exceptions import (
+from backend.domain.auth.entities import User
+from backend.domain.auth.exceptions import (
     AccountDisabled,
     InvalidCredentials,
     SystemNotInitialized,
 )
-from asa_core.domain.auth.services import AuthenticationService
+from backend.domain.auth.services import AuthenticationService
 
 
 class TestLoginHandler:

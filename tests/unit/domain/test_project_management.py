@@ -1,17 +1,17 @@
 """项目管理领域规则测试。"""
 
 import pytest
-from asa_core.application.project_support import redact_user_text
-from asa_core.domain.projects.exceptions import (
+from backend.application.project_support import redact_user_text
+from backend.domain.projects.exceptions import (
     ProjectDeleteForbidden,
     ProjectNotRunning,
     ProjectStatusConflict,
     SourceCredentialForbidden,
     SourcePathInvalid,
 )
-from asa_core.domain.projects.status_machine import ProjectStatusMachine
-from asa_core.domain.projects.validators import SourcePathValidator
-from asa_core.domain.projects.value_objects import EnvironmentType, ProjectName
+from backend.domain.projects.status_machine import ProjectStatusMachine
+from backend.domain.projects.validators import SourcePathValidator
+from backend.domain.projects.value_objects import EnvironmentType, ProjectName
 
 
 class TestProjectStatusMachine:

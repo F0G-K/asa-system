@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from asa_core.application.commands.logout import LogoutCommand, LogoutHandler
+from backend.application.commands.logout import LogoutCommand, LogoutHandler
 
 
 class TestLogoutHandler:

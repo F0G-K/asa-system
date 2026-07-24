@@ -4,18 +4,18 @@ import uuid
 from datetime import UTC, datetime
 
 import pytest
-from asa_core.domain.scheduling.entities import (
+from backend.domain.scheduling.entities import (
     ExecutionStatus,
     RuntimeStage,
     StageName,
 )
-from asa_core.domain.scheduling.exceptions import (
+from backend.domain.scheduling.exceptions import (
     InvalidStageTransition,
     ProjectCancellationRequested,
     StagePrerequisiteNotMet,
 )
-from asa_core.domain.scheduling.stage_machine import StageStateMachine
-from asa_core.domain.scheduling.task_policy import TaskDistributionPolicy
+from backend.domain.scheduling.stage_machine import StageStateMachine
+from backend.domain.scheduling.task_policy import TaskDistributionPolicy
 
 
 def _stage(

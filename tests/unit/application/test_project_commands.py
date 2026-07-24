@@ -5,28 +5,28 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from asa_core.application.commands.create_project import (
+from backend.application.commands.create_project import (
     CreateProjectCommand,
     CreateProjectHandler,
 )
-from asa_core.application.commands.delete_project import (
+from backend.application.commands.delete_project import (
     DeleteProjectCommand,
     DeleteProjectHandler,
 )
-from asa_core.application.commands.start_project import (
+from backend.application.commands.start_project import (
     StartProjectCommand,
     StartProjectHandler,
 )
-from asa_core.application.commands.stop_project import (
+from backend.application.commands.stop_project import (
     StopProjectCommand,
     StopProjectHandler,
 )
-from asa_core.application.ports.project_repository import (
+from backend.application.ports.project_repository import (
     ProjectOperationRecord,
     StartProjectResources,
 )
-from asa_core.domain.projects.entities import Project
-from asa_core.domain.projects.exceptions import (
+from backend.domain.projects.entities import Project
+from backend.domain.projects.exceptions import (
     EnvironmentTypeDisabled,
     IdempotencyKeyReused,
     ProjectNameConfirmationMismatch,
@@ -138,7 +138,7 @@ class TestStartProjectHandler:
         repo.find_accessible.return_value = project
         repo.has_runtime.return_value = True
 
-        from asa_core.domain.projects.exceptions import ProjectStatusConflict
+        from backend.domain.projects.exceptions import ProjectStatusConflict
 
         with pytest.raises(ProjectStatusConflict):
             await StartProjectHandler(AsyncMock()).handle(
@@ -162,7 +162,7 @@ class TestStartProjectHandler:
             "accepted_at": datetime.now(UTC).isoformat(),
         }
         repo = AsyncMock()
-        from asa_core.application.project_support import build_request_fingerprint
+        from backend.application.project_support import build_request_fingerprint
 
         fingerprint = build_request_fingerprint(
             actor_user_id=project.created_by,
@@ -209,7 +209,7 @@ class TestStartProjectHandler:
             "_worker_task_id": str(resources.worker_task_id),
         }
         repo = AsyncMock()
-        from asa_core.application.project_support import build_request_fingerprint
+        from backend.application.project_support import build_request_fingerprint
 
         fingerprint = build_request_fingerprint(
             actor_user_id=project.created_by,

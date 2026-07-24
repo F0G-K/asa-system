@@ -3,7 +3,7 @@
 import uuid
 
 import pytest
-from asa_worker.message_schema import WorkerTaskPayload
+from backend.worker.message_schema import WorkerTaskPayload
 from pydantic import ValidationError
 
 

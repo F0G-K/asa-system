@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock
 
-from asa_core.application.queries.get_system_status import (
+from backend.application.queries.get_system_status import (
     GetSystemStatusHandler,
     GetSystemStatusQuery,
 )

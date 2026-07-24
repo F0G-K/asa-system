@@ -2,10 +2,10 @@
 
 import random
 
-from asa_core.application.services.retry_policy import TaskRetryPolicy
-from asa_core.application.services.sensitive_text import redact_sensitive_text
-from asa_core.domain.agents.exceptions import ModelCallFailed
-from asa_core.domain.scheduling.exceptions import SchedulingConflict
+from backend.application.services.retry_policy import TaskRetryPolicy
+from backend.application.services.sensitive_text import redact_sensitive_text
+from backend.domain.agents.exceptions import ModelCallFailed
+from backend.domain.scheduling.exceptions import SchedulingConflict
 
 
 def test_retry_policy_retries_only_transient_failures() -> None:

@@ -4,9 +4,9 @@ import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from asa_api.project_dispatcher import ApiProjectTaskDispatcher
-from asa_core.application.ports.project_repository import StartProjectResources
-from asa_core.domain.projects.exceptions import DependencyUnavailable
+from backend.api.project_dispatcher import ApiProjectTaskDispatcher
+from backend.application.ports.project_repository import StartProjectResources
+from backend.domain.projects.exceptions import DependencyUnavailable
 
 
 async def test_start_dispatches_first_stage_after_commit() -> None:
@@ -22,7 +22,7 @@ async def test_start_dispatches_first_stage_after_commit() -> None:
     request_id = uuid.uuid4()
 
     with patch(
-        "asa_api.project_dispatcher.CeleryApiStageDispatcher",
+        "backend.api.project_dispatcher.CeleryApiStageDispatcher",
         return_value=adapter,
     ):
         await ApiProjectTaskDispatcher().dispatch_start(
@@ -50,7 +50,7 @@ async def test_start_maps_broker_failure_to_dependency_error() -> None:
 
     with (
         patch(
-            "asa_api.project_dispatcher.CeleryApiStageDispatcher",
+            "backend.api.project_dispatcher.CeleryApiStageDispatcher",
             return_value=adapter,
         ),
         pytest.raises(DependencyUnavailable),

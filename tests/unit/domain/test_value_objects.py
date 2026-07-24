@@ -1,7 +1,7 @@
 """Username/PasswordHash 值对象单元测试。"""
 
 import pytest
-from asa_core.domain.auth.value_objects import PasswordHash, Username
+from backend.domain.auth.value_objects import PasswordHash, Username
 
 
 class TestUsername:

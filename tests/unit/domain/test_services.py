@@ -5,13 +5,13 @@ from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
-from asa_core.domain.auth.entities import User
-from asa_core.domain.auth.exceptions import (
+from backend.domain.auth.entities import User
+from backend.domain.auth.exceptions import (
     AccountDisabled,
     AdminRequired,
     InvalidCredentials,
 )
-from asa_core.domain.auth.services import AuthenticationService, AuthorizationPolicy
+from backend.domain.auth.services import AuthenticationService, AuthorizationPolicy
 
 
 class TestAuthenticationService:
