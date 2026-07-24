@@ -1,7 +1,7 @@
 """模型与 LangGraph 适配器测试。"""
 
-from asa_core.application.ports.model_port import ModelPort, ModelRequest, ModelResult
-from asa_worker.agents.langgraph_adapter import LangGraphModelAdapter
+from backend.application.ports.model_port import ModelPort, ModelRequest, ModelResult
+from backend.worker.agents.langgraph_adapter import LangGraphModelAdapter
 
 
 class FakeModel(ModelPort):

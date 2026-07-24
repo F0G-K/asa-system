@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from asa_core.domain.auth.entities import User
+from backend.domain.auth.entities import User
 
 
 class TestUserEntity:

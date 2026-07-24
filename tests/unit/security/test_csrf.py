@@ -1,6 +1,6 @@
 """CSRF 工具和安全工具单元测试。"""
 
-from asa_core.infrastructure.security.csrf import generate_csrf_token, verify_csrf_token
+from backend.infrastructure.security.csrf import generate_csrf_token, verify_csrf_token
 
 
 class TestCsrf:

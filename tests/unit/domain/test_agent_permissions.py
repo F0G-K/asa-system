@@ -1,10 +1,10 @@
 """AI 角色与工具权限测试。"""
 
 import pytest
-from asa_core.domain.agents.exceptions import RoleNotAllowedForStage, ToolNotAllowed
-from asa_core.domain.agents.role import RoleRegistry, WorkerRole
-from asa_core.domain.agents.tool_permissions import ToolName, ToolPermissionPolicy
-from asa_core.domain.scheduling.entities import StageName
+from backend.domain.agents.exceptions import RoleNotAllowedForStage, ToolNotAllowed
+from backend.domain.agents.role import RoleRegistry, WorkerRole
+from backend.domain.agents.tool_permissions import ToolName, ToolPermissionPolicy
+from backend.domain.scheduling.entities import StageName
 
 
 def test_rag_is_enabled_only_for_analysis_roles() -> None:

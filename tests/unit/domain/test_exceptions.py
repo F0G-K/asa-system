@@ -1,6 +1,6 @@
 """领域异常单元测试。"""
 
-from asa_core.domain.auth.exceptions import (
+from backend.domain.auth.exceptions import (
     AccountDisabled,
     AdminRequired,
     AuthenticationRequired,
