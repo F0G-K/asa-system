@@ -13,6 +13,9 @@ importers:
       '@asa/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@element-plus/icons-vue':
+        specifier: ^2.3.2
+        version: 2.3.2(vue@3.5.40(typescript@5.9.3))
       axios:
         specifier: ^1.7.0
         version: 1.18.1

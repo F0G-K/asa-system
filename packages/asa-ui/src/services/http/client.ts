@@ -115,6 +115,11 @@ function createAxiosInstance(): AxiosInstance {
         // 动态导入避免循环依赖
         import('@/stores/auth.store').then(({ useAuthStore }) => {
           const authStore = useAuthStore()
+          // DEV 模式下如果已模拟登录，跳过清除（避免竞态）
+          if (import.meta.env.DEV && authStore.isAuthenticated) {
+            resetAuthRedirect()
+            return
+          }
           authStore.clearSession()
           import('@/router').then(({ router }) => {
             const currentPath = router.currentRoute.value.fullPath
@@ -124,6 +129,8 @@ function createAxiosInstance(): AxiosInstance {
             })
             resetAuthRedirect()
           })
+        }).catch(() => {
+          resetAuthRedirect()
         })
       }
 

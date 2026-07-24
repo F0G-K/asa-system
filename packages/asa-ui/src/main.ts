@@ -20,9 +20,9 @@ async function init() {
   app.use(router)
   app.use(ElementPlus)
 
-  await bootstrap()
-
   app.mount('#app')
+
+  await bootstrap()
 }
 
 init().catch((err) => {

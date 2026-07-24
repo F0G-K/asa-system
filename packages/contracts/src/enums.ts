@@ -75,6 +75,20 @@ export type WsEventType =
   | 'vulnerability_found'
   | 'report_ready'
 
+// ===== 知识库 =====
+
+export type KnowledgeType =
+  | 'vulnerability_pattern'
+  | 'security_standard'
+  | 'remediation_advice'
+  | 'historical_assessment'
+
+export type EntryStatus = 'active' | 'disabled' | 'draft'
+
+export type KnowledgeSourceType = 'manual' | 'external_import' | 'auto_curated'
+
+export type RetrievalType = 'stage_pre' | 'role_pre' | 'tool_triggered'
+
 // ===== 消息类型 =====
 
 export type MessageType = string // 非空协议标识，尚未形成闭集

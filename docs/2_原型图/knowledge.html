@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识库管理 — ASA</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    /* Tab bar */
+    .tab-bar{display:flex;gap:0;border-bottom:1px solid var(--color-border);margin-bottom:var(--spacing-lg)}
+    .tab-item{
+      padding:10px 24px;font-size:var(--font-size-base);color:var(--color-text-secondary);
+      background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;
+      transition:all var(--transition-fast)
+    }
+    .tab-item:hover{color:var(--color-text-regular)}
+    .tab-item.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+
+    /* Stat cards */
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-md);margin-bottom:var(--spacing-lg)}
+    .stat-card{
+      background:var(--color-bg-card);border:1px solid var(--color-border);
+      border-radius:var(--radius-md);padding:var(--spacing-lg)
+    }
+    .stat-card__label{font-size:var(--font-size-xs);color:var(--color-text-placeholder);text-transform:uppercase;letter-spacing:.5px;margin-bottom:var(--spacing-xs)}
+    .stat-card__count{font-size:var(--font-size-2xl);font-weight:700;color:var(--color-text-primary)}
+    .stat-card__desc{font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-top:var(--spacing-xs)}
+
+    /* Semantic search bar */
+    .semantic-search{
+      display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);
+      background:var(--color-bg-card);border:1px solid var(--color-border);
+      border-radius:var(--radius-md);padding:var(--spacing-md)
+    }
+    .semantic-search__input{
+      flex:1;background:var(--color-fill-input);border:1px solid var(--color-border);
+      border-radius:var(--radius-sm);color:var(--color-text-primary);
+      font-size:var(--font-size-base);padding:10px 16px;outline:none
+    }
+    .semantic-search__input:focus{border-color:var(--color-primary)}
+    .semantic-search__input::placeholder{color:var(--color-text-placeholder)}
+
+    /* Search result panel */
+    .search-results{margin-bottom:var(--spacing-lg)}
+    .search-result-item{
+      background:var(--color-bg-card);border:1px solid var(--color-border);
+      border-radius:var(--radius-md);padding:var(--spacing-md);margin-bottom:var(--spacing-sm)
+    }
+    .search-result-item:hover{border-color:var(--color-primary-light)}
+    .search-result-item__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--spacing-sm)}
+    .search-result-item__title{font-size:var(--font-size-md);font-weight:600;color:var(--color-primary)}
+    .search-result-item__similarity{font-size:var(--font-size-xs);color:var(--color-text-placeholder)}
+    .search-result-item__snippet{font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:1.6}
+    .search-result-item__meta{display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm)}
+
+    /* Modal backdrop */
+    .modal-backdrop{
+      display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center
+    }
+    .modal-backdrop.open{display:flex}
+    .modal{
+      background:var(--color-bg-card);border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);padding:var(--spacing-xl);
+      width:640px;max-width:calc(100vw - 48px);max-height:85vh;
+      overflow-y:auto;box-shadow:var(--shadow-lg)
+    }
+    .modal__title{font-size:var(--font-size-xl);font-weight:600;margin-bottom:var(--spacing-lg)}
+    .modal__actions{display:flex;justify-content:flex-end;gap:var(--spacing-sm);margin-top:var(--spacing-lg);padding-top:var(--spacing-md);border-top:1px solid var(--color-border)}
+
+    /* Empty state */
+    .empty-state{padding:var(--spacing-2xl);text-align:center;color:var(--color-text-placeholder)}
+    .empty-state__icon{font-size:48px;margin-bottom:var(--spacing-md);opacity:.3}
+
+    /* Confirm dialog */
+    .confirm-overlay{
+      display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center
+    }
+    .confirm-overlay.open{display:flex}
+    .confirm-box{
+      background:var(--color-bg-card);border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);padding:var(--spacing-xl);
+      width:400px;text-align:center;box-shadow:var(--shadow-lg)
+    }
+    .confirm-box__icon{font-size:40px;margin-bottom:var(--spacing-sm)}
+    .confirm-box__msg{font-size:var(--font-size-base);color:var(--color-text-regular);margin-bottom:var(--spacing-lg)}
+    .confirm-box__actions{display:flex;justify-content:center;gap:var(--spacing-sm)}
+
+    /* Toast */
+    .toast{
+      position:fixed;top:20px;right:20px;z-index:300;
+      background:var(--color-success);color:#fff;
+      padding:12px 24px;border-radius:var(--radius-sm);
+      font-size:var(--font-size-base);box-shadow:var(--shadow-md);
+      opacity:0;transform:translateY(-10px);transition:all .3s ease;pointer-events:none
+    }
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    /* Tag inline */
+    .tag-inline{display:inline-flex;align-items:center;gap:4px;margin-right:4px}
+
+    /* Retrieval history expand */
+    .retrieval-expand{
+      cursor:pointer;color:var(--color-primary);font-size:var(--font-size-sm);
+      margin-top:var(--spacing-xs);display:inline-block
+    }
+    .retrieval-expand:hover{text-decoration:underline}
+    .retrieval-entries-list{
+      display:none;margin-top:var(--spacing-sm);padding:var(--spacing-sm);
+      background:var(--color-fill-hover);border-radius:var(--radius-sm)
+    }
+    .retrieval-entries-list.open{display:block}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-layout__aside">
+    <div class="app-layout__logo">
+      <span class="app-layout__logo-icon">⬡</span>
+      <span class="app-layout__logo-text">ASA System</span>
+    </div>
+    <nav class="app-layout__menu">
+      <a href="project-list.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⊞</span> 项目列表
+      </a>
+      <a href="monitor.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">◉</span> 实时监控
+      </a>
+      <a href="vulnerability-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⚠</span> 漏洞管理
+      </a>
+      <a href="attack-path-list.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">⛓</span> 攻击路径
+      </a>
+      <a href="report.html" class="app-layout__menu-item disabled">
+        <span class="app-layout__menu-icon">☰</span> 报告中心
+      </a>
+      <a href="system-config.html" class="app-layout__menu-item">
+        <span class="app-layout__menu-icon">⚙</span> 系统配置
+      </a>
+      <a href="knowledge.html" class="app-layout__menu-item active">
+        <span class="app-layout__menu-icon">📚</span> 知识库
+      </a>
+    </nav>
+    <div class="app-layout__user-area">
+      <div class="app-layout__avatar">S</div>
+      <span class="app-layout__username">security_admin</span>
+    </div>
+  </aside>
+
+  <div class="app-layout__main-wrap">
+    <!-- Header -->
+    <header class="app-layout__header">
+      <div class="app-layout__header-left">
+        <div class="app-layout__breadcrumb">
+          <a href="project-list.html">首页</a>
+          <span class="app-layout__breadcrumb-sep">›</span>
+          <span class="current">知识库管理</span>
+        </div>
+      </div>
+      <div class="app-layout__header-right">
+        <div class="app-layout__user">
+          <span>admin</span>
+          <span class="tag tag--danger tag--sm">管理员</span>
+        </div>
+        <a href="login.html" class="btn btn--text-danger btn--sm">退出</a>
+      </div>
+    </header>
+
+    <main class="app-layout__main">
+      <div class="page-container">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">知识库管理</h1>
+            <p class="page-header__subtitle">管理安全知识条目，支持向量语义检索。分析阶段自动将匹配知识注入 AI 角色上下文。</p>
+          </div>
+          <div class="page-header__actions">
+            <button class="btn btn--primary" onclick="openCreateModal()">+ 新建条目</button>
+          </div>
+        </div>
+
+        <!-- Four sub-library stat cards -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card__label">漏洞模式库</div>
+            <div class="stat-card__count">128</div>
+            <div class="stat-card__desc">CVE/NVD · OWASP Top 10 · CWE</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">安全规范库</div>
+            <div class="stat-card__count">56</div>
+            <div class="stat-card__desc">OWASP Cheat Sheets · 语言安全指南</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">修复建议库</div>
+            <div class="stat-card__count">203</div>
+            <div class="stat-card__desc">代码修复片段 · 依赖升级 · 配置加固</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">历史评估库</div>
+            <div class="stat-card__count">47</div>
+            <div class="stat-card__desc">已完成评估的已验证漏洞特征 · 有效修复</div>
+          </div>
+        </div>
+
+        <!-- Semantic search -->
+        <div class="semantic-search">
+          <input id="semantic-input" class="semantic-search__input" type="text" placeholder="自然语言语义检索，如「Python SQL 注入的检测模式和修复方案」" onkeydown="if(event.key==='Enter')doSemanticSearch()">
+          <button class="btn btn--primary" onclick="doSemanticSearch()">🔍 语义检索</button>
+          <button class="btn" onclick="clearSearch()">清除</button>
+        </div>
+        <div id="search-results" class="search-results" style="display:none"></div>
+
+        <!-- Tab bar -->
+        <div class="card">
+          <div class="tab-bar" style="border-bottom:none;padding:0 var(--spacing-md)">
+            <button class="tab-item active" onclick="switchTab('entries')" id="tab-entries">知识条目</button>
+            <button class="tab-item" onclick="switchTab('retrievals')" id="tab-retrievals">检索历史</button>
+          </div>
+          <div class="card__body" style="padding-top:0">
+
+            <!-- ========== TAB 1: 知识条目列表 ========== -->
+            <div id="panel-entries">
+              <div class="filter-bar">
+                <select class="form-select" style="width:160px" id="filter-type" onchange="filterEntries()">
+                  <option value="">全部子库</option>
+                  <option value="vulnerability_pattern">漏洞模式库</option>
+                  <option value="security_standard">安全规范库</option>
+                  <option value="remediation_advice">修复建议库</option>
+                  <option value="historical_assessment">历史评估库</option>
+                </select>
+                <select class="form-select" style="width:130px" id="filter-risk" onchange="filterEntries()">
+                  <option value="">全部风险等级</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                  <option value="info">Info</option>
+                </select>
+                <select class="form-select" style="width:140px" id="filter-language" onchange="filterEntries()">
+                  <option value="">全部语言</option>
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                  <option value="go">Go</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="rust">Rust</option>
+                </select>
+                <select class="form-select" style="width:120px" id="filter-status" onchange="filterEntries()">
+                  <option value="">全部状态</option>
+                  <option value="active">已激活</option>
+                  <option value="draft">草稿</option>
+                  <option value="disabled">已禁用</option>
+                </select>
+                <div class="search-box">
+                  <span style="color:var(--color-text-placeholder)">🔍</span>
+                  <input type="text" placeholder="搜索标题或正文..." id="filter-keyword" oninput="filterEntries()">
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>标题</th>
+                      <th>子库</th>
+                      <th>语言</th>
+                      <th>风险等级</th>
+                      <th style="width:80px">状态</th>
+                      <th>更新时间</th>
+                      <th style="width:140px">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="entries-tbody"></tbody>
+                </table>
+                <div class="pagination-bar">
+                  <span>共 <strong id="entries-total">0</strong> 条</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ========== TAB 2: 检索历史 ========== -->
+            <div id="panel-retrievals" style="display:none">
+              <div class="filter-bar">
+                <select class="form-select" style="width:160px" id="retrieval-filter-project" onchange="renderRetrievals()">
+                  <option value="">全部项目</option>
+                  <option value="proj-1">demo-web-app</option>
+                  <option value="proj-2">payment-gateway</option>
+                  <option value="proj-3">user-auth-service</option>
+                </select>
+                <select class="form-select" style="width:140px" id="retrieval-filter-type" onchange="renderRetrievals()">
+                  <option value="">全部触发类型</option>
+                  <option value="stage_pre">阶段前置检索</option>
+                  <option value="role_pre">角色前置检索</option>
+                  <option value="tool_triggered">工具触发检索</option>
+                </select>
+              </div>
+
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>时间</th>
+                      <th>项目</th>
+                      <th>触发类型</th>
+                      <th>查询摘要</th>
+                      <th>召回数</th>
+                      <th>耗时</th>
+                      <th>详情</th>
+                    </tr>
+                  </thead>
+                  <tbody id="retrievals-tbody"></tbody>
+                </table>
+                <div class="pagination-bar">
+                  <span>共 <strong id="retrievals-total">0</strong> 条</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- card__body -->
+        </div><!-- card -->
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== Modal: Create / Edit Entry ===== -->
+<div class="modal-backdrop" id="entry-modal">
+  <div class="modal">
+    <h2 class="modal__title" id="modal-title">新建知识条目</h2>
+    <div class="form-group">
+      <label class="form-label form-label--required" for="entry-title">标题</label>
+      <input id="entry-title" class="form-input" type="text" placeholder="如：SQL 注入检测模式" maxlength="255">
+    </div>
+    <div class="form-group">
+      <label class="form-label form-label--required" for="entry-content">Markdown 正文</label>
+      <textarea id="entry-content" class="form-textarea" rows="8" placeholder="## 漏洞模式&#10;&#10;### 常见危险函数&#10;- 拼接 SQL 字符串&#10;- ..."></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md)">
+      <div class="form-group">
+        <label class="form-label form-label--required" for="entry-type">子库分类</label>
+        <select id="entry-type" class="form-select">
+          <option value="vulnerability_pattern">漏洞模式库</option>
+          <option value="security_standard">安全规范库</option>
+          <option value="remediation_advice">修复建议库</option>
+          <option value="historical_assessment">历史评估库</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="entry-risk">风险等级</label>
+        <select id="entry-risk" class="form-select">
+          <option value="">— 不关联 —</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+          <option value="info">Info</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="entry-language">编程语言</label>
+        <input id="entry-language" class="form-input" type="text" placeholder="多值以逗号分隔，如 python,java,go">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="entry-framework">框架</label>
+        <input id="entry-framework" class="form-input" type="text" placeholder="多值以逗号分隔，如 django,spring">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="entry-tags">标签</label>
+      <input id="entry-tags" class="form-input" type="text" placeholder="逗号分隔，如 sqli, injection, input-validation">
+    </div>
+    <div class="modal__actions">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn--primary" onclick="saveEntry()" id="modal-save-btn">保存为草稿</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Confirm Dialog ===== -->
+<div class="confirm-overlay" id="confirm-dialog">
+  <div class="confirm-box">
+    <div class="confirm-box__icon">⚠️</div>
+    <p class="confirm-box__msg" id="confirm-msg">确定要删除此条目？删除不可恢复。</p>
+    <div class="confirm-box__actions">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn--danger" id="confirm-action-btn" onclick="executeConfirm()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Mock Data =====
+const MOCK_ENTRIES = [
+  {id:'e1',title:'SQL 注入检测模式',content:'# SQL 注入检测\n\n## 常见模式\n...',knowledge_type:'vulnerability_pattern',language:'python,java,go',framework:null,risk_level:'critical',tags:['sqli','injection','input-validation'],entry_status:'active',source_type:'manual',version:3,created_at:'2026-06-15T02:10:00Z',updated_at:'2026-07-20T09:30:00Z'},
+  {id:'e2',title:'XSS 跨站脚本攻击模式',content:'# XSS 检测\n\n...',knowledge_type:'vulnerability_pattern',language:'javascript,typescript,php',framework:null,risk_level:'high',tags:['xss','cross-site-scripting','html-escape'],entry_status:'active',source_type:'manual',version:2,created_at:'2026-06-10T05:15:00Z',updated_at:'2026-07-18T14:20:00Z'},
+  {id:'e3',title:'命令注入检测模式',content:'# 命令注入\n\n...',knowledge_type:'vulnerability_pattern',language:'python,java,go,rust',framework:null,risk_level:'critical',tags:['command-injection','rce','os-command'],entry_status:'active',source_type:'manual',version:1,created_at:'2026-07-01T10:00:00Z',updated_at:'2026-07-01T10:00:00Z'},
+  {id:'e4',title:'路径遍历漏洞检测',content:'# 路径遍历\n\n...',knowledge_type:'vulnerability_pattern',language:'python,java,go,php',framework:null,risk_level:'high',tags:['path-traversal','directory-climb','file-read'],entry_status:'active',source_type:'external_import',version:1,created_at:'2026-06-20T08:30:00Z',updated_at:'2026-07-10T11:00:00Z'},
+  {id:'e5',title:'Python Django 安全编码规范',content:'# Django 安全规范\n\n## CSRF 防护\n...',knowledge_type:'security_standard',language:'python',framework:'django',risk_level:null,tags:['django','csrf','secure-config'],entry_status:'active',source_type:'manual',version:5,created_at:'2026-05-10T06:00:00Z',updated_at:'2026-07-22T16:45:00Z'},
+  {id:'e6',title:'Java Spring Boot 认证最佳实践',content:'# Spring Boot 认证\n\n...',knowledge_type:'security_standard',language:'java',framework:'spring',risk_level:null,tags:['spring-boot','authentication','jwt'],entry_status:'active',source_type:'manual',version:3,created_at:'2026-05-20T12:00:00Z',updated_at:'2026-07-15T09:00:00Z'},
+  {id:'e7',title:'SQL 注入修复方案 - 参数化查询',content:'# 修复：使用参数化查询\n\n```python\ncursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))\n```',knowledge_type:'remediation_advice',language:'python,java,go',framework:null,risk_level:'critical',tags:['sqli','parameterized-query','fix'],entry_status:'active',source_type:'auto_deposit',version:1,created_at:'2026-07-05T04:30:00Z',updated_at:'2026-07-05T04:30:00Z'},
+  {id:'e8',title:'不安全的反序列化（Java）',content:'# 反序列化\n\n...',knowledge_type:'vulnerability_pattern',language:'java',framework:'spring',risk_level:'critical',tags:['deserialization','java','rce'],entry_status:'draft',source_type:'manual',version:1,created_at:'2026-07-23T11:00:00Z',updated_at:'2026-07-23T11:00:00Z'},
+  {id:'e9',title:'TLS 配置加固指南',content:'# TLS 加固\n\n...',knowledge_type:'remediation_advice',language:'python,java,go,nginx',framework:null,risk_level:'medium',tags:['tls','ssl','cipher-suites','hsts'],entry_status:'active',source_type:'manual',version:2,created_at:'2026-06-30T07:45:00Z',updated_at:'2026-07-12T08:20:00Z'},
+  {id:'e10',title:'demo-web-app SQL 注入确认验证记录',content:'# 历史评估\n\n## 项目：demo-web-app\n...',knowledge_type:'historical_assessment',language:'python',framework:'django',risk_level:'critical',tags:['demo-web-app','sqli','verified'],entry_status:'draft',source_type:'auto_deposit',version:1,created_at:'2026-07-21T02:00:00Z',updated_at:'2026-07-21T02:00:00Z'},
+];
+
+const MOCK_RETRIEVALS = [
+  {id:1,project_id:'proj-1',project_name:'demo-web-app',stage_name:'code_analysis',worker_role:'code_analyst',retrieval_type:'role_pre',query_text:'Python Django 用户认证模块 SQL 注入检测 参数化查询',filter_language:'python',filter_knowledge_types:['vulnerability_pattern','remediation_advice'],top_k:8,retrieval_duration_ms:127,retrieved_entries:[{entry_id:'e1',title:'SQL 注入检测模式',similarity:0.93},{entry_id:'e7',title:'SQL 注入修复方案 - 参数化查询',similarity:0.91},{entry_id:'e5',title:'Python Django 安全编码规范',similarity:0.78}],created_at:'2026-07-22T05:12:00Z'},
+  {id:2,project_id:'proj-1',project_name:'demo-web-app',stage_name:'code_analysis',worker_role:'code_analyst',retrieval_type:'tool_triggered',query_text:'文件上传功能 路径遍历 任意文件读取',filter_language:'python',filter_knowledge_types:['vulnerability_pattern'],top_k:5,retrieval_duration_ms:89,retrieved_entries:[{entry_id:'e4',title:'路径遍历漏洞检测',similarity:0.87}],created_at:'2026-07-22T05:13:15Z'},
+  {id:3,project_id:'proj-2',project_name:'payment-gateway',stage_name:'vulnerability_verify',worker_role:'vulnerability_verifier',retrieval_type:'stage_pre',query_text:'Java Spring Boot 支付网关 反序列化 TLS 配置',filter_language:'java',filter_knowledge_types:['vulnerability_pattern','security_standard','remediation_advice'],top_k:8,retrieval_duration_ms:156,retrieved_entries:[{entry_id:'e8',title:'不安全的反序列化（Java）',similarity:0.94},{entry_id:'e6',title:'Java Spring Boot 认证最佳实践',similarity:0.81},{entry_id:'e9',title:'TLS 配置加固指南',similarity:0.76}],created_at:'2026-07-23T09:30:00Z'},
+  {id:4,project_id:'proj-3',project_name:'user-auth-service',stage_name:'code_analysis',worker_role:'code_analyst',retrieval_type:'role_pre',query_text:'Go 语言 JWT 认证 XSS 防护 输入校验',filter_language:'go',filter_knowledge_types:['vulnerability_pattern','security_standard'],top_k:8,retrieval_duration_ms:103,retrieved_entries:[{entry_id:'e2',title:'XSS 跨站脚本攻击模式',similarity:0.85},{entry_id:'e3',title:'命令注入检测模式',similarity:0.72}],created_at:'2026-07-23T11:45:00Z'},
+];
+
+// ===== Tab Switching =====
+function switchTab(tab){
+  document.querySelectorAll('.tab-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-entries').style.display = tab==='entries'?'block':'none';
+  document.getElementById('panel-retrievals').style.display = tab==='retrievals'?'block':'none';
+}
+
+// ===== Entry Rendering =====
+const TYPE_NAMES = {
+  vulnerability_pattern:'漏洞模式库',security_standard:'安全规范库',
+  remediation_advice:'修复建议库',historical_assessment:'历史评估库'
+};
+const STATUS_TAG = {
+  active:'<span class="tag tag--success">active</span>',
+  draft:'<span class="tag tag--warning">draft</span>',
+  disabled:'<span class="tag tag--info">disabled</span>'
+};
+const RISK_TAG = {
+  critical:'<span class="tag tag--danger">Critical</span>',
+  high:'<span class="tag tag--danger">High</span>',
+  medium:'<span class="tag tag--warning">Medium</span>',
+  low:'<span class="tag tag--info">Low</span>',
+  info:'<span class="tag tag--info">Info</span>'
+};
+
+function filterEntries(){
+  const type=document.getElementById('filter-type').value;
+  const risk=document.getElementById('filter-risk').value;
+  const lang=document.getElementById('filter-language').value.toLowerCase();
+  const status=document.getElementById('filter-status').value;
+  const kw=document.getElementById('filter-keyword').value.toLowerCase();
+  const filtered=MOCK_ENTRIES.filter(e=>{
+    if(type&&e.knowledge_type!==type)return false;
+    if(risk&&e.risk_level!==risk)return false;
+    if(lang&&!(e.language||'').includes(lang))return false;
+    if(status&&e.entry_status!==status)return false;
+    if(kw&&!e.title.toLowerCase().includes(kw)&&!(e.content||'').toLowerCase().includes(kw))return false;
+    return true;
+  });
+  renderEntriesTable(filtered);
+}
+
+function renderEntriesTable(entries){
+  const tbody=document.getElementById('entries-tbody');
+  document.getElementById('entries-total').textContent=entries.length;
+  if(!entries.length){
+    tbody.innerHTML='<tr><td colspan="7" class="data-table__empty">暂无匹配的知识条目</td></tr>';
+    return;
+  }
+  tbody.innerHTML=entries.map(e=>`
+    <tr data-id="${e.id}">
+      <td>
+        <div style="font-weight:500;color:var(--color-primary);cursor:pointer" onclick="viewEntry('${e.id}')">${esc(e.title)}</div>
+        <div style="font-size:12px;color:var(--color-text-placeholder);margin-top:2px">${e.tags.map(t=>'<span class="tag tag--sm tag--info" style="margin-right:4px">'+esc(t)+'</span>').join('')}</div>
+      </td>
+      <td><span class="tag tag--info">${TYPE_NAMES[e.knowledge_type]}</span></td>
+      <td>${(e.language||'—').split(',').map(l=>'<span class="tag tag--sm tag--info" style="margin-right:2px">'+l.trim()+'</span>').join('')}</td>
+      <td>${e.risk_level?RISK_TAG[e.risk_level]:'—'}</td>
+      <td>${STATUS_TAG[e.entry_status]}</td>
+      <td style="font-size:13px;color:var(--color-text-secondary)">${fmtDate(e.updated_at)}</td>
+      <td>
+        <button class="btn btn--sm" onclick="openEditModal('${e.id}')" title="编辑">✎</button>
+        ${e.entry_status==='active'?`<button class="btn btn--sm" onclick="confirmDisable('${e.id}')" title="禁用">⊘</button>`:''}
+        ${e.entry_status==='disabled'?`<button class="btn btn--sm" onclick="confirmActivate('${e.id}')" title="激活">✓</button>`:''}
+        ${e.entry_status==='draft'?`<button class="btn btn--sm" onclick="confirmActivate('${e.id}')" title="审核通过">✓</button>`:''}
+        <button class="btn btn--sm btn--text-danger" onclick="confirmDelete('${e.id}')" title="删除">✕</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(iso){return iso?iso.slice(0,10)+' '+iso.slice(11,19):'—';}
+
+// ===== Entry CRUD =====
+let editingId=null;
+function openCreateModal(){
+  editingId=null;
+  document.getElementById('modal-title').textContent='新建知识条目';
+  document.getElementById('modal-save-btn').textContent='保存为草稿';
+  document.getElementById('entry-title').value='';
+  document.getElementById('entry-content').value='';
+  document.getElementById('entry-type').value='vulnerability_pattern';
+  document.getElementById('entry-risk').value='';
+  document.getElementById('entry-language').value='';
+  document.getElementById('entry-framework').value='';
+  document.getElementById('entry-tags').value='';
+  document.getElementById('entry-modal').classList.add('open');
+}
+
+function openEditModal(id){
+  const e=MOCK_ENTRIES.find(x=>x.id===id);
+  if(!e)return;
+  editingId=id;
+  document.getElementById('modal-title').textContent='编辑知识条目';
+  document.getElementById('modal-save-btn').textContent='保存修改';
+  document.getElementById('entry-title').value=e.title;
+  document.getElementById('entry-content').value=e.content;
+  document.getElementById('entry-type').value=e.knowledge_type;
+  document.getElementById('entry-risk').value=e.risk_level||'';
+  document.getElementById('entry-language').value=e.language||'';
+  document.getElementById('entry-framework').value=e.framework||'';
+  document.getElementById('entry-tags').value=(e.tags||[]).join(', ');
+  document.getElementById('entry-modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('entry-modal').classList.remove('open');}
+
+function saveEntry(){
+  const title=document.getElementById('entry-title').value.trim();
+  const content=document.getElementById('entry-content').value.trim();
+  if(!title||!content){showToast('标题和正文为必填项');return;}
+  const now=new Date().toISOString();
+  if(editingId){
+    const e=MOCK_ENTRIES.find(x=>x.id===editingId);
+    if(e){e.title=title;e.content=content;e.knowledge_type=document.getElementById('entry-type').value;e.risk_level=document.getElementById('entry-risk').value||null;e.language=document.getElementById('entry-language').value||null;e.framework=document.getElementById('entry-framework').value||null;e.tags=document.getElementById('entry-tags').value.split(',').map(s=>s.trim()).filter(Boolean);e.updated_at=now;e.version+=1;}
+    showToast('条目已更新');
+  }else{
+    MOCK_ENTRIES.unshift({id:'e'+Date.now(),title,content,knowledge_type:document.getElementById('entry-type').value,language:document.getElementById('entry-language').value||null,framework:document.getElementById('entry-framework').value||null,risk_level:document.getElementById('entry-risk').value||null,tags:document.getElementById('entry-tags').value.split(',').map(s=>s.trim()).filter(Boolean),entry_status:'draft',source_type:'manual',version:1,created_at:now,updated_at:now});
+    showToast('条目已创建（草稿状态，待审核）');
+  }
+  closeModal();
+  filterEntries();
+}
+
+function viewEntry(id){
+  const e=MOCK_ENTRIES.find(x=>x.id===id);
+  if(!e)return;
+  openEditModal(id);
+}
+
+// ===== Confirm Actions =====
+let confirmCallback=null;
+function showConfirm(msg,btnText,cb){
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-action-btn').textContent=btnText;
+  confirmCallback=cb;
+  document.getElementById('confirm-dialog').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirm-dialog').classList.remove('open');
+  confirmCallback=null;
+}
+function executeConfirm(){
+  if(confirmCallback)confirmCallback();
+  closeConfirm();
+}
+function confirmDelete(id){
+  showConfirm('确定要删除此条目？删除不可恢复。','确认删除',()=>{
+    const idx=MOCK_ENTRIES.findIndex(x=>x.id===id);
+    if(idx!==-1)MOCK_ENTRIES.splice(idx,1);
+    filterEntries();
+    showToast('条目已删除');
+  });
+}
+function confirmDisable(id){
+  showConfirm('禁用后该条目不参与语义检索，但保留向量数据。','确认禁用',()=>{
+    const e=MOCK_ENTRIES.find(x=>x.id===id);
+    if(e){e.entry_status='disabled';e.updated_at=new Date().toISOString();}
+    filterEntries();
+    showToast('条目已禁用');
+  });
+}
+function confirmActivate(id){
+  showConfirm('审核激活后将异步生成 Embedding 向量，条目开始参与检索。','确认激活',()=>{
+    const e=MOCK_ENTRIES.find(x=>x.id===id);
+    if(e){e.entry_status='active';e.reviewed_by='admin';e.updated_at=new Date().toISOString();}
+    filterEntries();
+    showToast('条目已激活，向量生成中...');
+  });
+}
+
+// ===== Semantic Search =====
+function doSemanticSearch(){
+  const q=document.getElementById('semantic-input').value.trim();
+  if(!q){showToast('请输入检索查询');return;}
+  const panel=document.getElementById('search-results');
+  // Mock: top-3 similar entries
+  const lowerQ=q.toLowerCase();
+  const scored=MOCK_ENTRIES.filter(e=>e.entry_status==='active').map(e=>{
+    let score=0;
+    if(lowerQ.includes('sql')&&e.title.includes('SQL'))score=0.93;
+    else if(lowerQ.includes('python')&&(e.language||'').includes('python'))score=0.85;
+    else if(lowerQ.includes('java')&&(e.language||'').includes('java'))score=0.88;
+    else if(lowerQ.includes('xss')&&e.title.includes('XSS'))score=0.91;
+    else if(lowerQ.includes('注入')&&e.title.includes('注入'))score=0.89;
+    else if(lowerQ.includes('规范')&&e.knowledge_type==='security_standard')score=0.82;
+    else if(lowerQ.includes('修复')&&e.knowledge_type==='remediation_advice')score=0.84;
+    else score=Math.random()*0.4+0.3;
+    return {...e,similarity:score};
+  }).sort((a,b)=>b.similarity-a.similarity).slice(0,5);
+
+  panel.style.display='block';
+  if(!scored.length){panel.innerHTML='<div class="empty-state"><div class="empty-state__icon">🔍</div><p>未找到匹配的知识条目</p></div>';return;}
+
+  panel.innerHTML=`
+    <div style="font-size:13px;color:var(--color-text-placeholder);margin-bottom:var(--spacing-sm)">
+      语义检索结果 — query: "${esc(q)}" — 共 ${scored.length} 条，按相似度降序
+    </div>
+    ${scored.map(e=>`
+      <div class="search-result-item">
+        <div class="search-result-item__header">
+          <span class="search-result-item__title" style="cursor:pointer" onclick="openEditModal('${e.id}')">${esc(e.title)}</span>
+          <span class="search-result-item__similarity">相似度 ${(e.similarity*100).toFixed(1)}%</span>
+        </div>
+        <div class="search-result-item__snippet">${esc(e.content.slice(0,120))}...</div>
+        <div class="search-result-item__meta">
+          <span class="tag tag--info tag--sm">${TYPE_NAMES[e.knowledge_type]}</span>
+          ${e.risk_level?RISK_TAG[e.risk_level]:''}
+          ${(e.language||'').split(',').filter(Boolean).map(l=>'<span class="tag tag--sm tag--info" style="margin-right:2px">'+l.trim()+'</span>').join('')}
+          ${(e.tags||[]).slice(0,3).map(t=>'<span class="tag tag--sm" style="margin-right:2px;background:var(--color-fill-hover);color:var(--color-text-secondary);border:1px solid var(--color-border)">'+esc(t)+'</span>').join('')}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function clearSearch(){
+  document.getElementById('semantic-input').value='';
+  document.getElementById('search-results').style.display='none';
+}
+
+// ===== Retrieval History =====
+function renderRetrievals(){
+  const pid=document.getElementById('retrieval-filter-project').value;
+  const rtype=document.getElementById('retrieval-filter-type').value;
+  const filtered=MOCK_RETRIEVALS.filter(r=>{
+    if(pid&&r.project_id!==pid)return false;
+    if(rtype&&r.retrieval_type!==rtype)return false;
+    return true;
+  });
+  const tbody=document.getElementById('retrievals-tbody');
+  document.getElementById('retrievals-total').textContent=filtered.length;
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="7" class="data-table__empty">暂无检索记录</td></tr>';
+    return;
+  }
+  const TYPE_NAMES_R={stage_pre:'阶段前置',role_pre:'角色前置',tool_triggered:'工具触发'};
+  tbody.innerHTML=filtered.map(r=>`
+    <tr>
+      <td style="font-size:13px">${fmtDate(r.created_at)}</td>
+      <td>${esc(r.project_name)}</td>
+      <td><span class="tag tag--sm tag--info">${TYPE_NAMES_R[r.retrieval_type]}</span></td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--color-text-secondary)" title="${esc(r.query_text)}">${esc(r.query_text)}</td>
+      <td>${r.retrieved_entries.length}</td>
+      <td style="font-size:13px;color:var(--color-text-secondary)">${r.retrieval_duration_ms}ms</td>
+      <td><span class="retrieval-expand" onclick="toggleRetrievalDetail(this,'${r.id}')">展开 ▸</span></td>
+    </tr>
+    <tr id="retrieval-detail-${r.id}" style="display:none">
+      <td colspan="7" style="background:var(--color-fill-hover);padding:var(--spacing-md)">
+        <div style="font-size:13px;color:var(--color-text-placeholder);margin-bottom:var(--spacing-sm)">
+          查询文本：${esc(r.query_text)} &nbsp;|&nbsp; 过滤语言：${r.filter_language||'无'} &nbsp;|&nbsp; 子库：${(r.filter_knowledge_types||[]).map(t=>TYPE_NAMES[t]||t).join('、')} &nbsp;|&nbsp; top-k：${r.top_k}
+        </div>
+        ${r.retrieved_entries.map((re,i)=>`
+          <div style="display:flex;align-items:center;gap:var(--spacing-md);padding:6px 0;font-size:13px">
+            <span style="color:var(--color-text-placeholder)">#${i+1}</span>
+            <span style="color:var(--color-primary)">${esc(re.title)}</span>
+            <span style="color:var(--color-text-placeholder)">相似度 ${(re.similarity*100).toFixed(1)}%</span>
+          </div>
+        `).join('')}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleRetrievalDetail(el,id){
+  const row=document.getElementById('retrieval-detail-'+id);
+  const open=row.style.display!=='none';
+  row.style.display=open?'none':'table-row';
+  el.textContent=open?'展开 ▸':'收起 ▾';
+}
+
+// ===== Toast =====
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ===== Init =====
+filterEntries();
+renderRetrievals();
+
+// Close modal on backdrop click
+document.getElementById('entry-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.getElementById('confirm-dialog').addEventListener('click',function(e){if(e.target===this)closeConfirm();});
+</script>
+</body>
+</html>

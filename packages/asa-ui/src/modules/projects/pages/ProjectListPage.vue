@@ -16,6 +16,10 @@ import AppErrorBlock from '@/shared/components/AppErrorBlock.vue'
 import AppEmptyState from '@/shared/components/AppEmptyState.vue'
 import type { ProjectSummary } from '@asa/contracts'
 
+function asProject(row: unknown): ProjectSummary {
+  return row as ProjectSummary
+}
+
 const router = useRouter()
 
 // ===== State =====
@@ -284,7 +288,7 @@ onMounted(() => {
                 查看
               </el-button>
               <el-button
-                v-if="canAct(row, 'monitor')"
+                v-if="canAct(asProject(row), 'monitor')"
                 text
                 size="small"
                 type="success"
@@ -293,7 +297,7 @@ onMounted(() => {
                 监控
               </el-button>
               <el-button
-                v-if="canAct(row, 'delete')"
+                v-if="canAct(asProject(row), 'delete')"
                 text
                 size="small"
                 type="danger"

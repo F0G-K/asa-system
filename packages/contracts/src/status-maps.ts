@@ -136,6 +136,33 @@ export const CONTAINER_STATUS_MAP: Record<string, StatusDisplay> = {
   failed: { text: '失败', color: 'var(--color-danger)' },
 }
 
+// ===== 知识库类型映射 =====
+
+export const KNOWLEDGE_TYPE_MAP: Record<string, StatusDisplay> = {
+  vulnerability_pattern: { text: '漏洞模式库', color: 'var(--color-danger)' },
+  security_standard: { text: '安全规范库', color: 'var(--color-primary)' },
+  remediation_advice: { text: '修复建议库', color: 'var(--color-success)' },
+  historical_assessment: { text: '历史评估库', color: 'var(--color-info)' },
+}
+
+export const ENTRY_STATUS_MAP: Record<string, StatusDisplay> = {
+  active: { text: '已激活', color: 'var(--color-success)' },
+  disabled: { text: '已禁用', color: 'var(--color-text-secondary)' },
+  draft: { text: '草稿', color: 'var(--color-warning)' },
+}
+
+export const KNOWLEDGE_SOURCE_TYPE_MAP: Record<string, StatusDisplay> = {
+  manual: { text: '手动录入', color: 'var(--color-info)' },
+  external_import: { text: '外部导入', color: 'var(--color-primary)' },
+  auto_curated: { text: '自动沉淀', color: 'var(--color-success)' },
+}
+
+export const RETRIEVAL_TYPE_MAP: Record<string, StatusDisplay> = {
+  stage_pre: { text: '阶段前置', color: 'var(--color-primary)' },
+  role_pre: { text: '角色前置', color: 'var(--color-info)' },
+  tool_triggered: { text: '工具触发', color: 'var(--color-success)' },
+}
+
 // ===== 源码类型映射 =====
 
 export const SOURCE_TYPE_MAP: Record<string, StatusDisplay> = {

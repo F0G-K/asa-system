@@ -8,12 +8,28 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserSummary | null>(null)
   const isSystemInitialized = ref<boolean | null>(null)
   const loadingStatus = ref<'idle' | 'loading' | 'error'>('idle')
+  const isBootstrapped = ref(false)
 
   // ===== Getters =====
   const isAuthenticated = computed(() => user.value !== null)
   const isAdmin = computed(() => user.value?.role === 'admin')
   const username = computed(() => user.value?.username ?? '')
   const userId = computed(() => user.value?.id ?? '')
+
+  // ===== Dev bypass =====
+  function enableDevMode(): void {
+    isSystemInitialized.value = true
+    user.value = {
+      id: '00000000-0000-0000-0000-000000000001',
+      username: 'dev_admin',
+      role: 'admin',
+      status: 'active',
+    }
+  }
+
+  function markBootstrapped(): void {
+    isBootstrapped.value = true
+  }
 
   // ===== Actions =====
 
@@ -77,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isSystemInitialized,
     loadingStatus,
+    isBootstrapped,
     // getters
     isAuthenticated,
     isAdmin,
@@ -89,5 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     clearSession,
+    enableDevMode,
+    markBootstrapped,
   }
 })

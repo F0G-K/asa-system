@@ -38,6 +38,7 @@ const navItems = computed<NavItem[]>(() => {
     { index: '/projects/:projectId/report', title: '报告中心', icon: '☰', requiresProject: true },
   ]
   if (authStore.isAdmin) {
+    items.push({ index: '/knowledge', title: '知识库', icon: '📚', requiresProject: false })
     items.push({ index: '/system/config', title: '系统配置', icon: '⚙', requiresProject: false })
   }
   return items
@@ -61,6 +62,9 @@ function isNavActive(item: NavItem): boolean {
   if (item.requiresProject && currentProjectId.value) {
     const resolved = item.index.replace(':projectId', currentProjectId.value)
     return route.path.startsWith(resolved)
+  }
+  if (item.index === '/knowledge') {
+    return route.path.startsWith('/knowledge')
   }
   if (item.index === '/system/config') {
     return route.path.startsWith('/system/config')

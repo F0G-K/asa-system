@@ -80,6 +80,12 @@ const routes: RouteRecordRaw[] = [
     props: true,
   },
   {
+    path: '/knowledge',
+    name: 'Knowledge',
+    component: () => import('@/modules/knowledge/pages/KnowledgePage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true, title: '知识库管理' },
+  },
+  {
     path: '/system/config',
     name: 'SystemConfig',
     component: () => import('@/modules/config/pages/SystemConfigPage.vue'),
@@ -110,6 +116,12 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
+
+  // 应用尚未完成 bootstrap：放行所有路由，避免阻塞渲染
+  if (!authStore.isBootstrapped) {
+    next()
+    return
+  }
 
   // 校验路由参数中的 UUID
   const projectId = to.params.projectId as string | undefined

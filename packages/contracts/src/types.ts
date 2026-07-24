@@ -12,6 +12,10 @@ import type {
   LogLevel,
   ReportStatus,
   ContainerStatus,
+  KnowledgeType,
+  EntryStatus,
+  KnowledgeSourceType,
+  RetrievalType,
 } from './enums'
 
 // ===== 通用 =====
@@ -322,6 +326,70 @@ export interface ReportData {
   updated_at: string
 }
 
+// ===== 知识库 =====
+
+export interface KnowledgeEntrySummary {
+  id: string
+  title: string
+  knowledge_type: KnowledgeType
+  language: string | null
+  framework: string | null
+  risk_level: RiskLevel | null
+  tags: string[]
+  entry_status: EntryStatus
+  source_type: KnowledgeSourceType
+  version: number
+  created_at: string
+  updated_at: string
+}
+
+export interface KnowledgeEntryDetail extends KnowledgeEntrySummary {
+  content_text: string
+  source_url: string | null
+  created_by: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+}
+
+export interface KnowledgeSearchResult {
+  entry_id: string
+  title: string
+  knowledge_type: KnowledgeType
+  content_text: string
+  risk_level: RiskLevel | null
+  tags: string[]
+  similarity: number
+}
+
+export interface KnowledgeSearchData {
+  items: KnowledgeSearchResult[]
+  query_text: string
+  searched_knowledge_types: KnowledgeType[]
+  total_scanned: number
+  total_matched: number
+}
+
+export interface RetrievalEntryRef {
+  entry_id: string
+  score: number
+}
+
+export interface KnowledgeRetrievalRecord {
+  id: number
+  stage_id: string | null
+  worker_task_id: string | null
+  retrieval_type: RetrievalType
+  query_text: string
+  filter_language: string | null
+  filter_knowledge_types: KnowledgeType[] | null
+  top_k: number
+  retrieved_entries: RetrievalEntryRef[]
+  top_score: number | null
+  avg_score: number | null
+  retrieval_duration_ms: number | null
+  created_at: string
+}
+
 // ===== 创建/更新请求体 =====
 
 export interface InitRequestBody {
@@ -358,4 +426,38 @@ export interface UpdateConfigBody {
   file_retention_days: number | null
   enabled_environment_types: string[]
   settings?: Record<string, unknown>
+}
+
+export interface CreateKnowledgeEntryBody {
+  title: string
+  content_text: string
+  knowledge_type: KnowledgeType
+  language?: string | null
+  framework?: string | null
+  risk_level?: RiskLevel | null
+  tags?: string[]
+  source_type?: KnowledgeSourceType
+  source_url?: string | null
+}
+
+export interface UpdateKnowledgeEntryBody {
+  title?: string
+  content_text?: string
+  knowledge_type?: KnowledgeType
+  language?: string | null
+  framework?: string | null
+  risk_level?: RiskLevel | null
+  tags?: string[]
+  entry_status?: EntryStatus
+  source_url?: string | null
+  expected_version: number
+}
+
+export interface KnowledgeSearchBody {
+  query_text: string
+  top_k?: number
+  knowledge_types?: KnowledgeType[]
+  language?: string
+  risk_level?: RiskLevel
+  min_similarity?: number
 }
