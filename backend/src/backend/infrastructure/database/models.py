@@ -768,3 +768,322 @@ class AuditLogModel(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+
+# ---------------------------------------------------------------------------
+# 漏洞 & 攻击路径 & 报告（分析产出）
+# ---------------------------------------------------------------------------
+
+
+class VulnerabilityModel(Base):
+    """vulnerabilities 表 ORM 映射。"""
+
+    __tablename__ = "vulnerabilities"
+    __table_args__ = (
+        CheckConstraint(
+            "risk_level IN ('critical', 'high', 'medium', 'low', 'info')",
+            name="risk_level",
+        ),
+        CheckConstraint(
+            "verify_status IN ('pending', 'verified', 'rejected')",
+            name="verify_status",
+        ),
+        CheckConstraint("line_start > 0", name="line_start"),
+        CheckConstraint("line_end >= line_start", name="line_end"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_vulnerabilities__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    vuln_code: Mapped[str] = mapped_column(String(64), nullable=False)
+    vuln_title: Mapped[str] = mapped_column(String(256), nullable=False)
+    rule_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(16), nullable=False)
+    file_path: Mapped[str] = mapped_column(Text, nullable=False)
+    line_start: Mapped[int] = mapped_column(Integer, nullable=False)
+    line_end: Mapped[int] = mapped_column(Integer, nullable=False)
+    impact_text: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    condition_text: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    evidence_text: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    verify_status: Mapped[str] = mapped_column(
+        String(16), nullable=False, server_default=text("'pending'")
+    )
+    reproduce_steps_text: Mapped[str | None] = mapped_column(Text)
+    verify_code_text: Mapped[str | None] = mapped_column(Text)
+    discovered_by_task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    verified_by_task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class AttackPathModel(Base):
+    """attack_paths 表 ORM 映射。"""
+
+    __tablename__ = "attack_paths"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_attack_paths__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    path_code: Mapped[str] = mapped_column(String(64), nullable=False)
+    path_title: Mapped[str] = mapped_column(String(256), nullable=False)
+    path_summary: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    final_impact_text: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    step_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    vulnerability_codes: Mapped[list[str] | None] = mapped_column(ARRAY(String(64)))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class AttackPathStepModel(Base):
+    """attack_path_steps 表 ORM 映射。"""
+
+    __tablename__ = "attack_path_steps"
+    __table_args__ = (
+        CheckConstraint("step_order >= 0", name="step_order"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    path_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("attack_paths.id", name="fk_attack_path_steps__path_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    step_order: Mapped[int] = mapped_column(Integer, nullable=False)
+    step_text: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
+    vuln_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("vulnerabilities.id", name="fk_attack_path_steps__vuln_id", ondelete="SET NULL"),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class ReportModel(Base):
+    """reports 表 ORM 映射。"""
+
+    __tablename__ = "reports"
+    __table_args__ = (
+        CheckConstraint(
+            "report_status IN ('pending', 'generating', 'ready', 'failed')",
+            name="report_status",
+        ),
+        CheckConstraint("version > 0", name="version"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_reports__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    report_status: Mapped[str] = mapped_column(
+        String(16), nullable=False, server_default=text("'pending'")
+    )
+    report_markdown: Mapped[str | None] = mapped_column(Text)
+    report_html: Mapped[str | None] = mapped_column(Text)
+    download_available: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    content_sha256: Mapped[str | None] = mapped_column(String(64))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+# ---------------------------------------------------------------------------
+# 监控（消息 / 日志 / 资源）
+# ---------------------------------------------------------------------------
+
+
+class ChatMessageModel(Base):
+    """chat_messages 表 ORM 映射。"""
+
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_chat_messages__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    stage_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    worker_task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    worker_role: Mapped[str] = mapped_column(String(64), nullable=False)
+    message_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    message_text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class RuntimeLogModel(Base):
+    """runtime_logs 表 ORM 映射。"""
+
+    __tablename__ = "runtime_logs"
+    __table_args__ = (
+        CheckConstraint(
+            "log_level IN ('debug', 'info', 'warning', 'error')",
+            name="log_level",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_runtime_logs__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    stage_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    worker_task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    request_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    log_level: Mapped[str] = mapped_column(String(16), nullable=False)
+    log_content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class ResourceSampleModel(Base):
+    """resource_samples 表 ORM 映射。"""
+
+    __tablename__ = "resource_samples"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    runtime_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_resource_samples__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    cpu_usage: Mapped[float] = mapped_column(nullable=False, server_default=text("0"))
+    memory_usage: Mapped[float] = mapped_column(nullable=False, server_default=text("0"))
+    token_count: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+# ---------------------------------------------------------------------------
+# 知识库
+# ---------------------------------------------------------------------------
+
+
+class KnowledgeEntryModel(Base):
+    """knowledge_entries 表 ORM 映射。"""
+
+    __tablename__ = "knowledge_entries"
+    __table_args__ = (
+        CheckConstraint(
+            "knowledge_type IN "
+            "('vulnerability_pattern', 'security_standard', 'remediation_advice', 'historical_assessment')",
+            name="knowledge_type",
+        ),
+        CheckConstraint(
+            "entry_status IN ('active', 'disabled', 'draft')",
+            name="entry_status",
+        ),
+        CheckConstraint(
+            "source_type IN ('manual', 'external_import', 'auto_curated')",
+            name="source_type",
+        ),
+        CheckConstraint("version > 0", name="version"),
+        CheckConstraint("char_length(btrim(title)) > 0", name="title_nonempty"),
+        CheckConstraint("char_length(btrim(content_text)) > 0", name="content_nonempty"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    content_text: Mapped[str] = mapped_column(Text, nullable=False)
+    knowledge_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    language: Mapped[str | None] = mapped_column(String(32))
+    framework: Mapped[str | None] = mapped_column(String(64))
+    risk_level: Mapped[str | None] = mapped_column(String(16))
+    tags: Mapped[list[str]] = mapped_column(
+        ARRAY(String(64)), nullable=False, server_default=text("ARRAY[]::varchar[]")
+    )
+    entry_status: Mapped[str] = mapped_column(
+        String(16), nullable=False, server_default=text("'active'")
+    )
+    source_type: Mapped[str] = mapped_column(
+        String(32), nullable=False, server_default=text("'manual'")
+    )
+    source_url: Mapped[str | None] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("1"))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", name="fk_knowledge_entries__created_by", ondelete="SET NULL"),
+    )
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", name="fk_knowledge_entries__reviewed_by", ondelete="SET NULL"),
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class KnowledgeRetrievalModel(Base):
+    """knowledge_retrievals 表 ORM 映射。"""
+
+    __tablename__ = "knowledge_retrievals"
+    __table_args__ = (
+        CheckConstraint(
+            "retrieval_type IN ('stage_pre', 'role_pre', 'tool_triggered')",
+            name="retrieval_type",
+        ),
+        CheckConstraint("top_k > 0", name="top_k"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", name="fk_knowledge_retrievals__project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    stage_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    worker_task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    retrieval_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    query_text: Mapped[str] = mapped_column(Text, nullable=False)
+    filter_language: Mapped[str | None] = mapped_column(String(32))
+    filter_knowledge_types: Mapped[list[str] | None] = mapped_column(ARRAY(String(64)))
+    top_k: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("5"))
+    retrieved_entries: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    top_score: Mapped[float | None] = mapped_column()
+    avg_score: Mapped[float | None] = mapped_column()
+    retrieval_duration_ms: Mapped[int | None] = mapped_column(BigInteger)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

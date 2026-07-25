@@ -10,9 +10,15 @@ from backend.api.exception_handlers.handlers import register_exception_handlers
 from backend.api.middleware.csrf import CsrfMiddleware
 from backend.api.middleware.request_id import RequestIdMiddleware
 from backend.api.routers.v1.auth import router as auth_router
+from backend.api.routers.v1.attack_paths import router as attack_paths_router
+from backend.api.routers.v1.config import router as config_router
+from backend.api.routers.v1.knowledge import router as knowledge_router, router_retrievals as knowledge_retrievals_router
+from backend.api.routers.v1.monitoring import router as monitoring_router
 from backend.api.routers.v1.projects import router as projects_router
+from backend.api.routers.v1.reports import router as reports_router
 from backend.api.routers.v1.scheduling import router as scheduling_router
 from backend.api.routers.v1.users import router as users_router
+from backend.api.routers.v1.vulnerabilities import router as vulnerabilities_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -58,9 +64,16 @@ def create_app() -> FastAPI:
 
     # --- 路由 ---
     app.include_router(auth_router, prefix="/api/v1/system")
+    app.include_router(config_router, prefix="/api/v1/system")
     app.include_router(users_router, prefix="/api/v1/users")
     app.include_router(projects_router, prefix="/api/v1/projects")
     app.include_router(scheduling_router, prefix="/api/v1/projects")
+    app.include_router(vulnerabilities_router, prefix="/api/v1/projects")
+    app.include_router(attack_paths_router, prefix="/api/v1/projects")
+    app.include_router(reports_router, prefix="/api/v1/projects")
+    app.include_router(monitoring_router, prefix="/api/v1/projects")
+    app.include_router(knowledge_router, prefix="/api/v1/knowledge")
+    app.include_router(knowledge_retrievals_router, prefix="/api/v1/projects")
 
     return app
 
